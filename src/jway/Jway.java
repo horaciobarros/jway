@@ -88,7 +88,7 @@ public class Jway {
 				criaService(nomeTabela);
 				criaManagedBean(nomeTabela);
 				criaViewJsf(nomeTabela);
-				
+
 			}
 			criaAmbiente();
 			System.out.println(" ----- Processo encerrado ----");
@@ -101,7 +101,7 @@ public class Jway {
 
 	private void criaAmbiente() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	private void montaNomePastas() {
@@ -196,7 +196,7 @@ public class Jway {
 
 		// criando a entidade
 		String nomeEntidade = transformaNomeEntidade(nomeTabela);
-		
+
 		mapEntidades.put(nomeTabela, nomeEntidade);
 
 		File fileEntidade = new File(modelPath + nomeEntidade + ".java");
@@ -513,8 +513,7 @@ public class Jway {
 
 	}
 
-	private void criaViewJsf
-	(String nomeTabela) {
+	private void criaViewJsf(String nomeTabela) {
 		// TODO Auto-generated method stub
 
 	}
@@ -531,6 +530,23 @@ public class Jway {
 			fw.write("package " + nomePacote + ".view; \n");
 
 			fw.write("\n");
+			fw.write("import java.io.Serializable;\n"
+					+ "import java.util.Arrays;\n" + "import java.util.Date;\n"
+					+ "import java.util.List;\n");
+
+			fw.write("import javax.annotation.PostConstruct;\n"
+					+ "import javax.faces.bean.ManagedBean;\n"
+					+ "import javax.faces.bean.ViewScoped;\n"
+					+ "import org.primefaces.event.ScheduleEntryMoveEvent;\n"
+					+ "import org.primefaces.event.ScheduleEntryResizeEvent;\n"
+					+ "import org.primefaces.event.SelectEvent;\n"
+					+ "import org.primefaces.model.DefaultScheduleEvent;\n"
+					+ "import org.primefaces.model.DefaultScheduleModel;\n"
+					+ "import org.primefaces.model.ScheduleEvent;\n"
+					+ "import org.primefaces.model.ScheduleModel;\n"
+					+ "import org.springframework.beans.factory.annotation.Autowired;\n"
+					+ "import org.springframework.stereotype.Component;\n"
+					+ "import util.Util;\n ");
 
 			fw.write("import java.io.*;\n");
 			fw.write("import java.util.*;\n");
@@ -538,12 +554,12 @@ public class Jway {
 			fw.write("import org.springframework.stereotype.Repository;\n");
 			fw.write("import " + nomePacote + ".model." + nomeEntidade + ";\n");
 
-			fw.write("\n");
-			fw.write("@Repository \n");
-			fw.write("publics  class " + nomeInterface + "Impl implements "
-					+ nomeInterface + "{\n");
+			fw.write("ViewScoped\n" +
+					"@Component \n" +
+					"@ManagedBean(name = '" + nomeEntidade + "Bean'" + ");\n");
+			fw.write("publics  class " + nomeEntidade + "Bean" + "Impl implements Serializable " 
+					+ "{\n");
 
-			fw.write("\n");
 			fw.write(space
 					+ "private static final long serialVersionUID = 1L;\n");
 			fw.write("\n");
@@ -631,8 +647,6 @@ public class Jway {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
-
 
 	}
 
@@ -885,7 +899,6 @@ public class Jway {
 			fw.write("\n");
 			fw.write("import org.hibernate.SessionFactory;\n");
 
-		
 			fw.write("@Service(\"" + nomeInterface + "\") \n");
 			fw.write("public class " + nomeInterface + "Impl implements "
 					+ nomeInterface + "{\n");
@@ -942,7 +955,7 @@ public class Jway {
 
 			fw.write(space + "public Object busca" + nomeEntidade
 					+ "PeloId(long id){\n");
-			fw.write(space + space + "return dao.busca" +nomeEntidade
+			fw.write(space + space + "return dao.busca" + nomeEntidade
 					+ "PeloId(id);\n");
 
 			fw.write(space + "}\n");
