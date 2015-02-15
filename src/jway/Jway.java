@@ -87,7 +87,7 @@ public class Jway {
 				criaDao(nomeTabela);
 				criaService(nomeTabela);
 				criaManagedBean(nomeTabela);
-				criaView(nomeTabela);
+				criaViewJsf(nomeTabela);
 				
 			}
 			criaAmbiente();
@@ -513,7 +513,8 @@ public class Jway {
 
 	}
 
-	private void criaView(String nomeTabela) {
+	private void criaViewJsf
+	(String nomeTabela) {
 		// TODO Auto-generated method stub
 
 	}
@@ -539,7 +540,7 @@ public class Jway {
 
 			fw.write("\n");
 			fw.write("@Repository \n");
-			fw.write("public class " + nomeInterface + "Impl implements "
+			fw.write("publics  class " + nomeInterface + "Impl implements "
 					+ nomeInterface + "{\n");
 
 			fw.write("\n");
