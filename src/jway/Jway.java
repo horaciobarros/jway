@@ -563,15 +563,8 @@ public class Jway {
 			fw.write(space
 					+ "private static final long serialVersionUID = 1L;\n");
 			fw.write("\n");
-			fw.write(space + "@Autowired \n");
-			fw.write(space + "private SessionFactory sessionFactory;\n");
-			fw.write("\n");
-			fw.write(space + "@Autowired \n");
-			fw.write(space + "private Dao<" + nomeEntidade + "> dao;\n");
-			fw.write("\n");
-			fw.write(space + "StringBuilder hql; \n");
-			fw.write("\n");
-
+			
+			
 			// --
 			fw.write(space + "public boolean existe(" + nomeEntidade + " "
 					+ transformaNomeColuna(nomeEntidade) + "){\n");
