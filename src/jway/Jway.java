@@ -564,75 +564,20 @@ public class Jway {
 					+ "private static final long serialVersionUID = 1L;\n");
 			fw.write("\n");
 			
+			fw.write(space + "private " + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + ";\n");
+			fw.write(space + "@Autowired\n");
+			fw.write(space + "private " + nomeEntidade + "Service " + transformaNomeColuna(nomeEntidade) + "Service;\n");
+			fw.write(space + "private final String MSG_ERRO_NAO_PREENCHIMENTO_CAMPOS = 'Campo deve ser informado';\n");
 			
-			// --
-			fw.write(space + "public boolean existe(" + nomeEntidade + " "
-					+ transformaNomeColuna(nomeEntidade) + "){\n");
-			fw.write(space
-					+ space
-					+ "Transaction tx = sessionFactory.getCurrentSession().beginTransaction();\n");
-			fw.write(space
-					+ space
-					+ "Query query = sessionFactory.getCurrentSession().createQuery("
-					+ "\"from " + nomeEntidade + " e where e.id = :pId \");\n");
-
-			fw.write(space + space + "query.setParameter(\"pId\", "
-					+ transformaNomeColuna(nomeEntidade) + ".getId());\n");
-
-			fw.write(space + space + "List lista = query.list();\n"
-					+ "tx.commit()\n;"
-					+ "boolean encontrado = !lista.isEmpty();\n"
-					+ "return encontrado;\n");
+			fw.write(space + "private List<" + nomeEntidade + "> lista" );
+			
+			fw.write(space + "public " + nomeEntidade + "() {\n\n");
 			fw.write(space + "}\n");
-
-			// --
-			fw.write(space + "public void adiciona(" + nomeEntidade + " "
-					+ transformaNomeColuna(nomeEntidade) + "){\n");
-			fw.write(space + space + "dao.save("
-					+ transformaNomeColuna(nomeEntidade) + ");\n");
-			fw.write(space + "}\n");
-
-			// --
-			fw.write(space + "public void exclui(" + nomeEntidade + " "
-					+ transformaNomeColuna(nomeEntidade) + "){\n");
-			fw.write(space + space + "dao.delete("
-					+ transformaNomeColuna(nomeEntidade) + ");\n");
-			fw.write(space + "}\n");
-
-			// --
-			fw.write(space + "public void altera(" + nomeEntidade + " "
-					+ transformaNomeColuna(nomeEntidade) + "){\n");
-			fw.write(space + space + "dao.update("
-					+ transformaNomeColuna(nomeEntidade) + ");\n");
-			fw.write(space + "}\n");
-
-			// --
-			fw.write(space + "public List<" + nomeEntidade + "> lista(){\n");
-			fw.write(space + space + "return (List<" + nomeEntidade
-					+ ">) this.dao.find(\"FROM " + nomeEntidade + " e \");\n ");
+			
 
 			fw.write(space + "}\n");
 
-			// --
-
-			fw.write(space + "public Object busca" + nomeEntidade
-					+ "PeloId(long id){\n");
-			fw.write(space
-					+ space
-					+ "Transaction tx = sessionFactory.getCurrentSession().beginTransaction();\n");
-			fw.write(space
-					+ space
-					+ "Query query = sessionFactory.getCurrentSession().createQuery("
-					+ "\"from " + nomeEntidade + " e where e.id = :pId \");\n");
-
-			fw.write(space + space + "query.setParameter(\"pId\", " + "id);\n");
-
-			fw.write(space + space + "List lista = query.list();\n"
-					+ " return (" + nomeEntidade + ") lista.get(0);\n");
-
-			fw.write(space + "}\n");
-
-			fw.write("}"); // final da classe dao
+			fw.write("}"); 
 
 			fw.flush();
 			fw.close();
