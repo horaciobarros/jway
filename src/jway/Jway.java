@@ -183,12 +183,11 @@ public class Jway {
 			System.out.println(diretorio.getAbsolutePath() + " - "
 					+ diretorio.exists());
 		} catch (Exception ex) {
-			JOptionPane
-					.showMessageDialog(null, "Erro ao criar o diretorio bean");
+			JOptionPane.showMessageDialog(null,
+					"Erro ao criar o diretorio bean");
 			System.out.println(ex);
 			ex.printStackTrace();
 		}
-
 
 	}
 
@@ -558,38 +557,80 @@ public class Jway {
 					+ "import org.primefaces.model.ScheduleModel;\n"
 					+ "import org.springframework.beans.factory.annotation.Autowired;\n"
 					+ "import org.springframework.stereotype.Component;\n"
-					+ "import util.Util;\n ");
+					+ "import util.Util;\n");
 
 			fw.write("import java.io.*;\n");
 			fw.write("import java.util.*;\n");
 			fw.write("import org.springframework.beans.factory.annotation.Autowired;\n");
 			fw.write("import org.springframework.stereotype.Repository;\n");
 			fw.write("import " + nomePacote + ".model." + nomeEntidade + ";\n");
+			fw.write("\n");
 
-			fw.write("ViewScoped\n" +
-					"@Component \n" +
-					"@ManagedBean(name = '" + nomeEntidade + "Bean'" + ");\n");
-			fw.write("publics  class " + nomeEntidade + "Bean" + "Impl implements Serializable " 
-					+ "{\n");
+			fw.write("@ViewScoped\n" + "@Component \n"
+					+ "@ManagedBean(name = '" + nomeEntidade + "Bean'" + ")\n");
+			fw.write("publics  class " + nomeEntidade + "Bean"
+					+ "Impl implements Serializable " + "{\n");
+			fw.write("\n");
 
 			fw.write(space
 					+ "private static final long serialVersionUID = 1L;\n");
 			fw.write("\n");
-			
-			fw.write(space + "private " + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + ";\n");
+
+			fw.write(space + "private " + nomeEntidade + " "
+					+ transformaNomeColuna(nomeEntidade) + ";\n");
+			fw.write("\n");
 			fw.write(space + "@Autowired\n");
-			fw.write(space + "private " + nomeEntidade + "Service " + transformaNomeColuna(nomeEntidade) + "Service;\n");
-			fw.write(space + "private final String MSG_ERRO_NAO_PREENCHIMENTO_CAMPOS = 'Campo deve ser informado';\n");
-			
-			fw.write(space + "private List<" + nomeEntidade + "> lista" );
-			
+			fw.write(space + "private " + nomeEntidade + "Service "
+					+ transformaNomeColuna(nomeEntidade) + "Service;\n");
+			fw.write("\n");
+			fw.write(space
+					+ "private final String MSG_ERRO_NAO_PREENCHIMENTO_CAMPOS = 'Campo deve ser informado';\n");
+			fw.write("\n");
+
+			fw.write(space + "private List<" + nomeEntidade + "> lista;\n");
+			fw.write("\n");
+
 			fw.write(space + "public " + nomeEntidade + "() {\n\n");
 			fw.write(space + "}\n");
 			
-
+			fw.write("\n");
+			fw.write(space
+					+ "public "
+					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade)
+					+ " get"
+					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade) + "() {\n");
+			fw.write(space + space + "return " + transformaNomeColuna(nomeEntidade) + ";\n");
 			fw.write(space + "}\n");
-
-			fw.write("}"); 
+			fw.write("\n");
+			
+			fw.write(space + "public void set" + transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade) + "("
+					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade) + " " 
+					+ transformaNomeColuna(nomeEntidade) + ") {\n");
+			fw.write(space + space + "this." + transformaNomeColuna(nomeEntidade) + " = " 
+					+ transformaNomeColuna(nomeEntidade) + ";\n");
+			
+			fw.write(space + "}\n");
+			
+			fw.write("\n");
+			fw.write(space
+					+ "public List<"
+					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade)
+					+ "> get"
+					+ "lista" + "() {\n");
+			fw.write(space + space + "return lista;\n");
+			fw.write(space + "}\n");
+			fw.write("\n");
+			
+			fw.write(space + "public void setLista(List<" + transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade) + "> " + 
+					"lista) {\n");
+			fw.write(space + space + "this.lista = " 
+					+ "lista;\n");
+			
+			fw.write(space + "}\n");
+			
+			fw.write("\n");
+			
+			fw.write("}");
 
 			fw.flush();
 			fw.close();
