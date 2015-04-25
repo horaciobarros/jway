@@ -18,7 +18,6 @@ public class Jway {
 	private Map<String, CampoFk> mapCamposFk = new HashMap<String, CampoFk>();
 	private Map<String, String> mapEntidades = new HashMap<String, String>();
 	private Connection conn;
-	private DatabaseMetaData dbmd;
 	private String space = "   ";
 	private String nomePacote;
 	private String modelPath;
@@ -26,6 +25,7 @@ public class Jway {
 	private String daoPath;
 	private String beanPath;
 	private String viewPath;
+	private DatabaseMetaData dbmd;
 
 	public static void main(String[] args) {
 		Jway jway = new Jway();
@@ -177,6 +177,18 @@ public class Jway {
 			System.out.println(ex);
 			ex.printStackTrace();
 		}
+		try {
+			diretorio = new File(beanPath);
+			diretorio.mkdirs();
+			System.out.println(diretorio.getAbsolutePath() + " - "
+					+ diretorio.exists());
+		} catch (Exception ex) {
+			JOptionPane
+					.showMessageDialog(null, "Erro ao criar o diretorio bean");
+			System.out.println(ex);
+			ex.printStackTrace();
+		}
+
 
 	}
 
