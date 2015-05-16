@@ -72,6 +72,7 @@ public class Jway {
 			System.out.println("Suporta Select for Update? = "
 					+ dbmd.supportsSelectForUpdate());
 			System.out.println("Suporta Transacoes? = "
+					
 					+ dbmd.supportsTransactions());
 
 			// retornar todos os schemas(usuarios) do Banco de Dados
