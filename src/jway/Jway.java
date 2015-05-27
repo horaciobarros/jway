@@ -530,117 +530,7 @@ public class Jway {
 
 	}
 
-	private void criaManagedBean(String nomeTabela) {
-		String nomeEntidade = mapEntidades.get(nomeTabela);
-		File fileBean = new File(beanPath + nomeEntidade + "Bean.java");
-		String nomeService = nomeEntidade + "Service";
-
-		String space = "   ";
-		try {
-			FileWriter fw = new FileWriter(fileBean);
-
-			fw.write("package " + nomePacote + ".view; \n");
-
-			fw.write("\n");
-			fw.write("import java.io.Serializable;\n"
-					+ "import java.util.Arrays;\n" + "import java.util.Date;\n"
-					+ "import java.util.List;\n");
-
-			fw.write("import javax.annotation.PostConstruct;\n"
-					+ "import javax.faces.bean.ManagedBean;\n"
-					+ "import javax.faces.bean.ViewScoped;\n"
-					+ "import org.primefaces.event.ScheduleEntryMoveEvent;\n"
-					+ "import org.primefaces.event.ScheduleEntryResizeEvent;\n"
-					+ "import org.primefaces.event.SelectEvent;\n"
-					+ "import org.primefaces.model.DefaultScheduleEvent;\n"
-					+ "import org.primefaces.model.DefaultScheduleModel;\n"
-					+ "import org.primefaces.model.ScheduleEvent;\n"
-					+ "import org.primefaces.model.ScheduleModel;\n"
-					+ "import org.springframework.beans.factory.annotation.Autowired;\n"
-					+ "import org.springframework.stereotype.Component;\n"
-					+ "import util.Util;\n");
-
-			fw.write("import java.io.*;\n");
-			fw.write("import java.util.*;\n");
-			fw.write("import org.springframework.beans.factory.annotation.Autowired;\n");
-			fw.write("import org.springframework.stereotype.Repository;\n");
-			fw.write("import " + nomePacote + ".model." + nomeEntidade + ";\n");
-			fw.write("\n");
-
-			fw.write("@ViewScoped\n" + "@Component \n"
-					+ "@ManagedBean(name = '" + nomeEntidade + "Bean'" + ")\n");
-			fw.write("publics  class " + nomeEntidade + "Bean"
-					+ "Impl implements Serializable " + "{\n");
-			fw.write("\n");
-
-			fw.write(space
-					+ "private static final long serialVersionUID = 1L;\n");
-			fw.write("\n");
-
-			fw.write(space + "private " + nomeEntidade + " "
-					+ transformaNomeColuna(nomeEntidade) + ";\n");
-			fw.write("\n");
-			fw.write(space + "@Autowired\n");
-			fw.write(space + "private " + nomeEntidade + "Service "
-					+ transformaNomeColuna(nomeEntidade) + "Service;\n");
-			fw.write("\n");
-			fw.write(space
-					+ "private final String MSG_ERRO_NAO_PREENCHIMENTO_CAMPOS = 'Campo deve ser informado';\n");
-			fw.write("\n");
-
-			fw.write(space + "private List<" + nomeEntidade + "> lista;\n");
-			fw.write("\n");
-
-			fw.write(space + "public " + nomeEntidade + "() {\n\n");
-			fw.write(space + "}\n");
-			
-			fw.write("\n");
-			fw.write(space
-					+ "public "
-					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade)
-					+ " get"
-					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade) + "() {\n");
-			fw.write(space + space + "return " + transformaNomeColuna(nomeEntidade) + ";\n");
-			fw.write(space + "}\n");
-			fw.write("\n");
-			
-			fw.write(space + "public void set" + transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade) + "("
-					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade) + " " 
-					+ transformaNomeColuna(nomeEntidade) + ") {\n");
-			fw.write(space + space + "this." + transformaNomeColuna(nomeEntidade) + " = " 
-					+ transformaNomeColuna(nomeEntidade) + ";\n");
-			
-			fw.write(space + "}\n");
-			
-			fw.write("\n");
-			fw.write(space
-					+ "public List<"
-					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade)
-					+ "> get"
-					+ "lista" + "() {\n");
-			fw.write(space + space + "return lista;\n");
-			fw.write(space + "}\n");
-			fw.write("\n");
-			
-			fw.write(space + "public void setLista(List<" + transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade) + "> " + 
-					"lista) {\n");
-			fw.write(space + space + "this.lista = " 
-					+ "lista;\n");
-			
-			fw.write(space + "}\n");
-			
-			fw.write("\n");
-			
-			fw.write("}");
-
-			fw.flush();
-			fw.close();
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-	}
+	
 
 	private void criaDao(String nomeTabela) {
 		// criando a interface
@@ -953,6 +843,118 @@ public class Jway {
 			fw.write(space + "}\n");
 
 			fw.write("}"); // final da classe dao
+
+			fw.flush();
+			fw.close();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+	
+	private void criaManagedBean(String nomeTabela) {
+		String nomeEntidade = mapEntidades.get(nomeTabela);
+		File fileBean = new File(beanPath + nomeEntidade + "Bean.java");
+		String nomeService = nomeEntidade + "Service";
+
+		String space = "   ";
+		try {
+			FileWriter fw = new FileWriter(fileBean);
+
+			fw.write("package " + nomePacote + ".view; \n");
+
+			fw.write("\n");
+			fw.write("import java.io.Serializable;\n"
+					+ "import java.util.Arrays;\n" + "import java.util.Date;\n"
+					+ "import java.util.List;\n");
+
+			fw.write("import javax.annotation.PostConstruct;\n"
+					+ "import javax.faces.bean.ManagedBean;\n"
+					+ "import javax.faces.bean.ViewScoped;\n"
+					+ "import org.primefaces.event.ScheduleEntryMoveEvent;\n"
+					+ "import org.primefaces.event.ScheduleEntryResizeEvent;\n"
+					+ "import org.primefaces.event.SelectEvent;\n"
+					+ "import org.primefaces.model.DefaultScheduleEvent;\n"
+					+ "import org.primefaces.model.DefaultScheduleModel;\n"
+					+ "import org.primefaces.model.ScheduleEvent;\n"
+					+ "import org.primefaces.model.ScheduleModel;\n"
+					+ "import org.springframework.beans.factory.annotation.Autowired;\n"
+					+ "import org.springframework.stereotype.Component;\n"
+					+ "import util.Util;\n");
+
+			fw.write("import java.io.*;\n");
+			fw.write("import java.util.*;\n");
+			fw.write("import org.springframework.beans.factory.annotation.Autowired;\n");
+			fw.write("import org.springframework.stereotype.Repository;\n");
+			fw.write("import " + nomePacote + ".model." + nomeEntidade + ";\n");
+			fw.write("\n");
+
+			fw.write("@ViewScoped\n" + "@Component \n"
+					+ "@ManagedBean(name = '" + nomeEntidade + "Bean'" + ")\n");
+			fw.write("publics  class " + nomeEntidade + "Bean"
+					+ "Impl implements Serializable " + "{\n");
+			fw.write("\n");
+
+			fw.write(space
+					+ "private static final long serialVersionUID = 1L;\n");
+			fw.write("\n");
+
+			fw.write(space + "private " + nomeEntidade + " "
+					+ transformaNomeColuna(nomeEntidade) + ";\n");
+			fw.write("\n");
+			fw.write(space + "@Autowired\n");
+			fw.write(space + "private " + nomeEntidade + "Service "
+					+ transformaNomeColuna(nomeEntidade) + "Service;\n");
+			fw.write("\n");
+			fw.write(space
+					+ "private final String MSG_ERRO_NAO_PREENCHIMENTO_CAMPOS = 'Campo deve ser informado';\n");
+			fw.write("\n");
+
+			fw.write(space + "private List<" + nomeEntidade + "> lista;\n");
+			fw.write("\n");
+
+			fw.write(space + "public " + nomeEntidade + "() {\n\n");
+			fw.write(space + "}\n");
+			
+			fw.write("\n");
+			fw.write(space
+					+ "public "
+					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade)
+					+ " get"
+					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade) + "() {\n");
+			fw.write(space + space + "return " + transformaNomeColuna(nomeEntidade) + ";\n");
+			fw.write(space + "}\n");
+			fw.write("\n");
+			
+			fw.write(space + "public void set" + transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade) + "("
+					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade) + " " 
+					+ transformaNomeColuna(nomeEntidade) + ") {\n");
+			fw.write(space + space + "this." + transformaNomeColuna(nomeEntidade) + " = " 
+					+ transformaNomeColuna(nomeEntidade) + ";\n");
+			
+			fw.write(space + "}\n");
+			
+			fw.write("\n");
+			fw.write(space
+					+ "public List<"
+					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade)
+					+ "> get"
+					+ "lista" + "() {\n");
+			fw.write(space + space + "return lista;\n");
+			fw.write(space + "}\n");
+			fw.write("\n");
+			
+			fw.write(space + "public void setLista(List<" + transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade) + "> " + 
+					"lista) {\n");
+			fw.write(space + space + "this.lista = " 
+					+ "lista;\n");
+			
+			fw.write(space + "}\n");
+			
+			fw.write("\n");
+			
+			fw.write("}");
 
 			fw.flush();
 			fw.close();
