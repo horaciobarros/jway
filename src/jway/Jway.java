@@ -39,8 +39,8 @@ public class Jway {
 		try {
 			DriverManager.registerDriver(new org.postgresql.Driver());
 			conn = DriverManager.getConnection(
-					"jdbc:postgresql://localhost:5432/horaciob_jgestao",
-					"horaciob", "hbsAuper2@");
+					"jdbc:postgresql://localhost:5432/esaude",
+					"postgres", "postgres");
 
 			// recuperar a classe DatabaseMetadaData a partir da conexao criada
 			dbmd = conn.getMetaData();
@@ -53,7 +53,7 @@ public class Jway {
 
 	private void processa() {
 		try {
-			nomePacote = "controleInterno"; // isto vai ser informado na tela
+			nomePacote = "esaude"; // isto vai ser informado na tela
 			montaNomePastas();
 			criaPastas();
 
@@ -516,6 +516,15 @@ public class Jway {
 				return "Long";
 			else
 				return "int";
+		}
+		if (tipo.equals("int2")) {
+			if (campoId)
+				return "Long";
+			else
+				return "int";
+		}
+		if (tipo.equals("timestamp")) {
+			return "Date";
 		}
 
 		if (tipo.equals("bpchar"))
