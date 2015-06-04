@@ -526,9 +526,17 @@ public class Jway {
 		if (tipo.equals("timestamp")) {
 			return "Date";
 		}
+		if (tipo.equals("bool")) {
+			return "boolean";
+		}
+			
+		if (tipo.contains("bool")) {
+			return "boolean";
+		}
 
-		if (tipo.equals("bpchar"))
+		if (tipo.equals("bpchar")){
 			return "String";
+		}
 
 		return tipo;
 
