@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,7 +40,7 @@ public class Jway {
 		try {
 			DriverManager.registerDriver(new org.postgresql.Driver());
 			conn = DriverManager.getConnection(
-					"jdbc:postgresql://localhost:5432/esaude",
+					"jdbc:postgresql://localhost:5432/esaude2",
 					"postgres", "postgres");
 
 			// recuperar a classe DatabaseMetadaData a partir da conexao criada
@@ -231,6 +232,7 @@ public class Jway {
 			fw.write("import javax.persistence.Table;\n");
 			fw.write("import java.io.*;\n");
 			fw.write("import java.util.*;\n");
+			fw.write("import java.math.BigDecimal;\n");
 
 			fw.write("\n");
 
@@ -505,23 +507,14 @@ public class Jway {
 			if (decimais == 0)
 				return ("Long");
 			else
-				return ("double");
+				return ("BigDecimal");
 		}
 		if (tipo.equals("varchar"))
 			return "String";
-		if (tipo.equals("date"))
+		if (tipo.contains("date"))
 			return "Date";
-		if (tipo.equals("int4")) {
-			if (campoId)
-				return "Long";
-			else
-				return "int";
-		}
-		if (tipo.equals("int2")) {
-			if (campoId)
-				return "Long";
-			else
-				return "int";
+		if (tipo.contains("int")) {
+			return "Long";
 		}
 		if (tipo.equals("timestamp")) {
 			return "Date";
