@@ -40,7 +40,7 @@ public class Jway {
 		try {
 			DriverManager.registerDriver(new org.postgresql.Driver());
 			conn = DriverManager.getConnection(
-					"jdbc:postgresql://localhost:5432/esaude2",
+					"jdbc:postgresql://localhost:5432/esaude",
 					"postgres", "postgres");
 
 			// recuperar a classe DatabaseMetadaData a partir da conexao criada
@@ -360,84 +360,6 @@ public class Jway {
 				}
 
 			}
-
-			// ---- hashCode ------------------
-			fw.write("\n");
-
-			fw.write(space + "@Override \n");
-			fw.write(space + "public int hashCode() { \n");
-			fw.write(space + space + "final int prime = 31;\n");
-			fw.write(space + space + "int result = 1;\n");
-
-			for (int i = 0; i < numColumns; i++) {
-				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1)
-						.toUpperCase())) { // se for uma fk
-					CampoFk fk = mapCamposFk.get(rsmd.getColumnName(i + 1)
-							.toUpperCase());
-					fw.write(space + space + "result = prime * result + (("
-							+ transformaNomeColuna(fk.getPkTableName())
-							+ " == null) ? 0 : "
-							+ transformaNomeColuna(fk.getPkTableName())
-							+ ".hashCode());\n");
-				} else {
-
-					fw.write(space + space + "result = prime * result + (("
-							+ transformaNomeColuna(rsmd.getColumnName(i + 1))
-							+ " == null) ? 0 : "
-							+ transformaNomeColuna(rsmd.getColumnName(i + 1))
-							+ ".hashCode());\n");
-				}
-
-			}
-			fw.write(space + space + "return result;\n");
-			fw.write(space + "}\n");
-
-			// --- equals ------------------------
-			fw.write("\n");
-			fw.write(space + "@Override \n");
-
-			fw.write(space + "public boolean equals(Object obj) {\n");
-			fw.write(space + space + "if (this == obj)\n");
-			fw.write(space + space + "return true;\n");
-			fw.write(space + space + "if (obj == null)\n");
-			fw.write(space + space + "return true;\n");
-			fw.write(space + space + "if (getClass() != obj.getClass())\n");
-			fw.write(space + space + "return false;\n");
-			fw.write(space + space + nomeEntidade + " other = (" + nomeEntidade
-					+ ") obj;\n");
-
-			for (int i = 0; i < numColumns; i++) {
-				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1)
-						.toUpperCase())) { // se for uma fk
-					CampoFk fk = mapCamposFk.get(rsmd.getColumnName(i + 1)
-							.toUpperCase());
-
-					fw.write(space + space + "if ("
-							+ transformaNomeColuna(fk.getPkTableName())
-							+ " == null) {\n ");
-
-					fw.write(space + space + space + "if (other."
-							+ transformaNomeColuna(fk.getPkTableName())
-							+ " != null) return false;\n ");
-					fw.write(space + space + "}\n");
-
-				} else {
-
-					fw.write(space + space + "if ("
-							+ transformaNomeColuna(rsmd.getColumnName(i + 1))
-							+ " == null) {\n ");
-
-					fw.write(space + space + space + "if (other."
-							+ transformaNomeColuna(rsmd.getColumnName(i + 1))
-							+ " != null) return false;\n ");
-					fw.write(space + space + "}\n");
-				}
-
-			}
-
-			fw.write(space + space + "return true;\n");
-
-			fw.write(space + "}\n");
 
 			fw.write("}"); // final da classe
 
