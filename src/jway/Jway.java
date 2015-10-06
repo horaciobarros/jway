@@ -27,6 +27,7 @@ public class Jway {
 	private String beanPath;
 	private String viewPath;
 	private DatabaseMetaData dbmd;
+	private boolean isPostgresql = false;
 
 	public static void main(String[] args) {
 		Jway jway = new Jway();
@@ -38,13 +39,27 @@ public class Jway {
 		// registrar o Driver JDBC do banco de dados, neste caso estou usando o
 		// da Oracle
 		try {
-			DriverManager.registerDriver(new org.postgresql.Driver());
-			conn = DriverManager.getConnection(
-					"jdbc:postgresql://localhost:5432/esaude",
-					"postgres", "postgres");
+			if (isPostgresql) {
 
-			// recuperar a classe DatabaseMetadaData a partir da conexao criada
-			dbmd = conn.getMetaData();
+				DriverManager.registerDriver(new org.postgresql.Driver());
+				conn = DriverManager
+						.getConnection("jdbc:postgres://localhost:5432/xsmile",
+								"root", "root");
+
+				// recuperar a classe DatabaseMetadaData a partir da conexao
+				// criada
+				dbmd = conn.getMetaData();
+			} else {
+				DriverManager.registerDriver(new com.mysql.jdbc.Driver());
+				conn = DriverManager
+						.getConnection("jdbc:mysql://localhost:3306/xsmile",
+								"root", "root");
+
+				// recuperar a classe DatabaseMetadaData a partir da conexao
+				// criada
+				dbmd = conn.getMetaData();
+
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -54,7 +69,7 @@ public class Jway {
 
 	private void processa() {
 		try {
-			nomePacote = "esaude"; // isto vai ser informado na tela
+			nomePacote = "xsmile"; // isto vai ser informado na tela
 			montaNomePastas();
 			criaPastas();
 
@@ -73,8 +88,8 @@ public class Jway {
 			System.out.println("Suporta Select for Update? = "
 					+ dbmd.supportsSelectForUpdate());
 			System.out.println("Suporta Transacoes? = "
-					
-					+ dbmd.supportsTransactions());
+
+			+ dbmd.supportsTransactions());
 
 			// retornar todos os schemas(usuarios) do Banco de Dados
 			ResultSet r2 = dbmd.getSchemas();
@@ -422,6 +437,7 @@ public class Jway {
 
 	private static String transformaTipo(String tipo, int decimais,
 			boolean campoId) {
+		tipo = tipo.toLowerCase();
 
 		// para o postgresql
 
@@ -444,12 +460,12 @@ public class Jway {
 		if (tipo.equals("bool")) {
 			return "boolean";
 		}
-			
+
 		if (tipo.contains("bool")) {
 			return "boolean";
 		}
 
-		if (tipo.equals("bpchar")){
+		if (tipo.equals("bpchar")) {
 			return "String";
 		}
 
@@ -461,8 +477,6 @@ public class Jway {
 		// TODO Auto-generated method stub
 
 	}
-
-	
 
 	private void criaDao(String nomeTabela) {
 		// criando a interface
@@ -784,7 +798,7 @@ public class Jway {
 		}
 
 	}
-	
+
 	private void criaManagedBean(String nomeTabela) {
 		String nomeEntidade = mapEntidades.get(nomeTabela);
 		File fileBean = new File(beanPath + nomeEntidade + "Bean.java");
@@ -848,44 +862,50 @@ public class Jway {
 
 			fw.write(space + "public " + nomeEntidade + "() {\n\n");
 			fw.write(space + "}\n");
-			
+
 			fw.write("\n");
 			fw.write(space
 					+ "public "
 					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade)
 					+ " get"
-					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade) + "() {\n");
-			fw.write(space + space + "return " + transformaNomeColuna(nomeEntidade) + ";\n");
+					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade)
+					+ "() {\n");
+			fw.write(space + space + "return "
+					+ transformaNomeColuna(nomeEntidade) + ";\n");
 			fw.write(space + "}\n");
 			fw.write("\n");
-			
-			fw.write(space + "public void set" + transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade) + "("
-					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade) + " " 
-					+ transformaNomeColuna(nomeEntidade) + ") {\n");
-			fw.write(space + space + "this." + transformaNomeColuna(nomeEntidade) + " = " 
+
+			fw.write(space
+					+ "public void set"
+					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade)
+					+ "("
+					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade)
+					+ " " + transformaNomeColuna(nomeEntidade) + ") {\n");
+			fw.write(space + space + "this."
+					+ transformaNomeColuna(nomeEntidade) + " = "
 					+ transformaNomeColuna(nomeEntidade) + ";\n");
-			
+
 			fw.write(space + "}\n");
-			
+
 			fw.write("\n");
 			fw.write(space
 					+ "public List<"
 					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade)
-					+ "> get"
-					+ "lista" + "() {\n");
+					+ "> get" + "lista" + "() {\n");
 			fw.write(space + space + "return lista;\n");
 			fw.write(space + "}\n");
 			fw.write("\n");
-			
-			fw.write(space + "public void setLista(List<" + transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade) + "> " + 
-					"lista) {\n");
-			fw.write(space + space + "this.lista = " 
-					+ "lista;\n");
-			
+
+			fw.write(space
+					+ "public void setLista(List<"
+					+ transformaNomeColunaPrimeiroCaracterMaiusculo(nomeEntidade)
+					+ "> " + "lista) {\n");
+			fw.write(space + space + "this.lista = " + "lista;\n");
+
 			fw.write(space + "}\n");
-			
+
 			fw.write("\n");
-			
+
 			fw.write("}");
 
 			fw.flush();
