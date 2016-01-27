@@ -52,8 +52,8 @@ public class Jway {
 			} else {
 				DriverManager.registerDriver(new com.mysql.jdbc.Driver());
 				conn = DriverManager
-						.getConnection("jdbc:mysql://localhost:3306/xsmile",
-								"root", "root");
+						.getConnection("jdbc:mysql://107.161.176.58:3306/fitapp",
+								"fitapp", "abc123#");
 
 				// recuperar a classe DatabaseMetadaData a partir da conexao
 				// criada
@@ -69,7 +69,7 @@ public class Jway {
 
 	private void processa() {
 		try {
-			nomePacote = "xsmile"; // isto vai ser informado na tela
+			nomePacote = "br.com.jway.jsf"; // isto vai ser informado na tela
 			montaNomePastas();
 			criaPastas();
 
@@ -467,6 +467,14 @@ public class Jway {
 
 		if (tipo.equals("bpchar")) {
 			return "String";
+		}
+		
+		if (tipo.equals("decimal")) {
+			return "Double";
+		}
+		
+		if (tipo.equals("blob")) {
+			return "Blob";
 		}
 
 		return tipo;
