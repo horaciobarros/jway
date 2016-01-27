@@ -55,14 +55,8 @@ public class Jway {
 			} else {
 				DriverManager.registerDriver(new com.mysql.jdbc.Driver());
 				conn = DriverManager
-<<<<<<< HEAD
 						.getConnection("jdbc:mysql://107.161.176.58:3306/fitapp",
 								"fitapp", "abc123#");
-=======
-						.getConnection("jdbc:mysql://localhost:3306/" + nomeBanco,
-								user, password);
->>>>>>> refs/remotes/origin/master
-
 				// recuperar a classe DatabaseMetadaData a partir da conexao
 				// criada
 				dbmd = conn.getMetaData();
@@ -77,11 +71,7 @@ public class Jway {
 
 	private void processa() {
 		try {
-<<<<<<< HEAD
 			nomePacote = "br.com.jway.jsf"; // isto vai ser informado na tela
-=======
-			nomePacote = "bloqueio"; // isto vai ser informado na tela
->>>>>>> refs/remotes/origin/master
 			montaNomePastas();
 			criaPastas();
 
@@ -481,17 +471,16 @@ public class Jway {
 			return "String";
 		}
 		
-<<<<<<< HEAD
 		if (tipo.equals("decimal")) {
 			return "Double";
 		}
 		
 		if (tipo.equals("blob")) {
 			return "Blob";
-=======
+		}
+		
 		if (tipo.equals("text")) {
 			return "String";
->>>>>>> refs/remotes/origin/master
 		}
 
 		return tipo;
