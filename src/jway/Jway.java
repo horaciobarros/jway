@@ -27,7 +27,10 @@ public class Jway {
 	private String beanPath;
 	private String viewPath;
 	private DatabaseMetaData dbmd;
-	private boolean isPostgresql = false;
+	private boolean isPostgresql = true;
+	private String nomeBanco = "bloqueio";
+	private String user = "postgres";
+	private String password = "postgres";
 
 	public static void main(String[] args) {
 		Jway jway = new Jway();
@@ -43,8 +46,8 @@ public class Jway {
 
 				DriverManager.registerDriver(new org.postgresql.Driver());
 				conn = DriverManager
-						.getConnection("jdbc:postgres://localhost:5432/xsmile",
-								"root", "root");
+						.getConnection("jdbc:postgresql://localhost:5432/" + nomeBanco,
+								user, password); 
 
 				// recuperar a classe DatabaseMetadaData a partir da conexao
 				// criada
@@ -52,8 +55,13 @@ public class Jway {
 			} else {
 				DriverManager.registerDriver(new com.mysql.jdbc.Driver());
 				conn = DriverManager
+<<<<<<< HEAD
 						.getConnection("jdbc:mysql://107.161.176.58:3306/fitapp",
 								"fitapp", "abc123#");
+=======
+						.getConnection("jdbc:mysql://localhost:3306/" + nomeBanco,
+								user, password);
+>>>>>>> refs/remotes/origin/master
 
 				// recuperar a classe DatabaseMetadaData a partir da conexao
 				// criada
@@ -69,7 +77,11 @@ public class Jway {
 
 	private void processa() {
 		try {
+<<<<<<< HEAD
 			nomePacote = "br.com.jway.jsf"; // isto vai ser informado na tela
+=======
+			nomePacote = "bloqueio"; // isto vai ser informado na tela
+>>>>>>> refs/remotes/origin/master
 			montaNomePastas();
 			criaPastas();
 
@@ -469,12 +481,17 @@ public class Jway {
 			return "String";
 		}
 		
+<<<<<<< HEAD
 		if (tipo.equals("decimal")) {
 			return "Double";
 		}
 		
 		if (tipo.equals("blob")) {
 			return "Blob";
+=======
+		if (tipo.equals("text")) {
+			return "String";
+>>>>>>> refs/remotes/origin/master
 		}
 
 		return tipo;
