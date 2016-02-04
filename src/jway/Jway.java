@@ -24,10 +24,11 @@ public class Jway {
 	private String modelPath;
 	private String servicePath;
 	private String daoPath;
+	private String daoImplPath;
 	private String beanPath;
 	private String viewPath;
 	private DatabaseMetaData dbmd;
-	private boolean isPostgresql = true;
+	private boolean isPostgresql = false;
 	private String nomeBanco = "bloqueio";
 	private String user = "postgres";
 	private String password = "postgres";
@@ -71,7 +72,8 @@ public class Jway {
 
 	private void processa() {
 		try {
-			nomePacote = "br.com.jway.jsf"; // isto vai ser informado na tela
+			nomePacote = "br.com.jway"; // sto vai ser informado na tela
+			
 			montaNomePastas();
 			criaPastas();
 
@@ -124,11 +126,13 @@ public class Jway {
 	}
 
 	private void montaNomePastas() {
-		modelPath = "/TEMP/src/" + nomePacote + "/model/";
-		daoPath = "/TEMP/src/" + nomePacote + "/dao/";
-		servicePath = "/TEMP/src/" + nomePacote + "/service/";
-		beanPath = "/TEMP/src/" + nomePacote + "/view/";
-		viewPath = "/TEMP/WebContent/" + nomePacote + "/view/";
+		String nomeDiretorio = nomePacote.replace(".", "/");
+		modelPath = "/TEMP/src/" + nomeDiretorio + "/model/";
+		daoPath = "/TEMP/src/" + nomeDiretorio + "/dao/";
+		daoImplPath = "/TEMP/src/" + nomeDiretorio + "/dao/impl";
+		servicePath = "/TEMP/src/" + nomeDiretorio + "/service/";
+		beanPath = "/TEMP/src/" + nomeDiretorio + "/view/";
+		viewPath = "/TEMP/WebContent/" + nomeDiretorio + "/view/";
 
 	}
 
@@ -196,6 +200,18 @@ public class Jway {
 			System.out.println(ex);
 			ex.printStackTrace();
 		}
+		try {
+			diretorio = new File(daoImplPath);
+			diretorio.mkdirs();
+			System.out.println(diretorio.getAbsolutePath() + " - "
+					+ diretorio.exists());
+		} catch (Exception ex) {
+			JOptionPane
+					.showMessageDialog(null, "Erro ao criar o diretorio dao Impl");
+			System.out.println(ex);
+			ex.printStackTrace();
+		}
+		
 		try {
 			diretorio = new File(beanPath);
 			diretorio.mkdirs();
@@ -509,30 +525,29 @@ public class Jway {
 
 			fw.write("import java.io.*;\n");
 			fw.write("import java.util.*;\n");
-			fw.write("import org.hibernate.SessionFactory;\n");
-			fw.write("import org.springframework.beans.factory.annotation.Autowired;\n");
-			fw.write("import org.springframework.stereotype.Repository;\n");
 			fw.write("import " + nomePacote + ".model." + nomeEntidade + ";\n");
 
 			fw.write("\n");
 
 			fw.write("public interface " + nomeInterface
-					+ " extends Serializable {\n");
+					+ "  {\n");
 
 			fw.write("\n");
 
-			fw.write(space + "public boolean existe(" + nomeEntidade + " "
-					+ transformaNomeColuna(nomeEntidade) + ");\n\n");
-			fw.write(space + "public void adiciona(" + nomeEntidade + " "
-					+ transformaNomeColuna(nomeEntidade) + ");\n\n");
-			fw.write(space + "public void exclui(" + nomeEntidade + " "
-					+ transformaNomeColuna(nomeEntidade) + ");\n\n");
-			fw.write(space + "public void altera(" + nomeEntidade + " "
-					+ transformaNomeColuna(nomeEntidade) + ");\n\n");
-			fw.write(space + "public List<" + nomeEntidade + "> lista();\n\n");
-
-			fw.write(space + "public Object busca" + nomeEntidade
-					+ "PeloId(long id);\n\n");
+			fw.write(space + "List<" + nomeEntidade + "> list();\n");
+			
+			fw.write(space +  nomeEntidade + " read(Long id);\n");
+			
+			fw.write(space + "void create(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) +");\n");
+			
+			fw.write(space +  nomeEntidade + " update(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) +");\n");
+			
+			fw.write(space + "void delete(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) +");\n");
+			
+			fw.write(space + "void delete(Long id);\n");
+			
+			fw.write(space + "List<" + nomeEntidade + "> list(Long id);\n");
+			
 
 			fw.write("}"); // final da interface
 
@@ -548,28 +563,30 @@ public class Jway {
 	}
 
 	private void criaDaoImpl(String nomeEntidade, String nomeInterface) {
-		File fileDaoImpl = new File(daoPath + nomeInterface + "Impl.java");
+		File fileDaoImpl = new File(daoImplPath + nomeInterface + "Impl.java");
 
 		String space = "   ";
 		try {
 			FileWriter fw = new FileWriter(fileDaoImpl);
 
-			fw.write("package " + nomePacote + ".dao; \n");
+			fw.write("package " + nomePacote + ".dao.impl; \n");
 
 			fw.write("\n");
 
-			fw.write("import java.io.*;\n");
-			fw.write("import java.util.*;\n");
-			fw.write("import org.hibernate.SessionFactory;\n");
-			fw.write("import org.springframework.beans.factory.annotation.Autowired;\n");
-			fw.write("import org.springframework.stereotype.Repository;\n");
-			fw.write("import org.hibernate.Query;\n");
-			fw.write("import org.hibernate.Transaction;\n");
+			fw.write("java.util.List;\n");
+			fw.write("import javax.inject.Named;\n");
+			fw.write("import javax.persistence.EntityManager;\n");
+			fw.write("import javax.persistence.PersistenceContext;\n");
+			fw.write("import org.springframework.transaction.annotation.Propagation;\n");
+			fw.write("import org.springframework.transaction.annotation.Transactional;\n");
+			fw.write("import " + nomePacote + ".dao." + nomeInterface + ";\n");
 			fw.write("import " + nomePacote + ".model." + nomeEntidade + ";\n");
 			fw.write("import " + nomePacote + ".dao.*;\n");
+			fw.write("import com.uaihebert.uaicriteria.UaiCriteria;\n");
 
 			fw.write("\n");
-			fw.write("@Repository \n");
+			
+			fw.write("@Named \n");
 			fw.write("public class " + nomeInterface + "Impl implements "
 					+ nomeInterface + "{\n");
 
@@ -577,79 +594,14 @@ public class Jway {
 			fw.write(space
 					+ "private static final long serialVersionUID = 1L;\n");
 			fw.write("\n");
-			fw.write(space + "@Autowired \n");
-			fw.write(space + "private SessionFactory sessionFactory;\n");
+			fw.write(space + "@PersistenceContext \n");
+			fw.write(space + "protected EntityManager em;\n");
 			fw.write("\n");
-			fw.write(space + "@Autowired \n");
-			fw.write(space + "private Dao<" + nomeEntidade + "> dao;\n");
-			fw.write("\n");
-			fw.write(space + "StringBuilder hql; \n");
-			fw.write("\n");
-
-			// --
-			fw.write(space + "public boolean existe(" + nomeEntidade + " "
-					+ transformaNomeColuna(nomeEntidade) + "){\n");
-			fw.write(space
-					+ space
-					+ "Transaction tx = sessionFactory.getCurrentSession().beginTransaction();\n");
-			fw.write(space
-					+ space
-					+ "Query query = sessionFactory.getCurrentSession().createQuery("
-					+ "\"from " + nomeEntidade + " e where e.id = :pId \");\n");
-
-			fw.write(space + space + "query.setParameter(\"pId\", "
-					+ transformaNomeColuna(nomeEntidade) + ".getId());\n");
-
-			fw.write(space + space + "List lista = query.list();\n"
-					+ "tx.commit()\n;"
-					+ "boolean encontrado = !lista.isEmpty();\n"
-					+ "return encontrado;\n");
-			fw.write(space + "}\n");
-
-			// --
-			fw.write(space + "public void adiciona(" + nomeEntidade + " "
-					+ transformaNomeColuna(nomeEntidade) + "){\n");
-			fw.write(space + space + "dao.save("
-					+ transformaNomeColuna(nomeEntidade) + ");\n");
-			fw.write(space + "}\n");
-
-			// --
-			fw.write(space + "public void exclui(" + nomeEntidade + " "
-					+ transformaNomeColuna(nomeEntidade) + "){\n");
-			fw.write(space + space + "dao.delete("
-					+ transformaNomeColuna(nomeEntidade) + ");\n");
-			fw.write(space + "}\n");
-
-			// --
-			fw.write(space + "public void altera(" + nomeEntidade + " "
-					+ transformaNomeColuna(nomeEntidade) + "){\n");
-			fw.write(space + space + "dao.update("
-					+ transformaNomeColuna(nomeEntidade) + ");\n");
-			fw.write(space + "}\n");
-
-			// --
-			fw.write(space + "public List<" + nomeEntidade + "> lista(){\n");
-			fw.write(space + space + "return (List<" + nomeEntidade
-					+ ">) this.dao.find(\"FROM " + nomeEntidade + " e \");\n ");
-
-			fw.write(space + "}\n");
-
-			// --
-
-			fw.write(space + "public Object busca" + nomeEntidade
-					+ "PeloId(long id){\n");
-			fw.write(space
-					+ space
-					+ "Transaction tx = sessionFactory.getCurrentSession().beginTransaction();\n");
-			fw.write(space
-					+ space
-					+ "Query query = sessionFactory.getCurrentSession().createQuery("
-					+ "\"from " + nomeEntidade + " e where e.id = :pId \");\n");
-
-			fw.write(space + space + "query.setParameter(\"pId\", " + "id);\n");
-
-			fw.write(space + space + "List lista = query.list();\n"
-					+ " return (" + nomeEntidade + ") lista.get(0);\n");
+			fw.write(space + "UaiCriteria<"+ nomeEntidade + "> uaiCriteria;\n");
+			fw.write(space + "@Override\n");
+			fw.write(space + "StringBuilder jpql = new StringBuilder()\n"); //
+			fw.write(space + ".append('SELECT x \n");
+			// parei aqui. HB
 
 			fw.write(space + "}\n");
 
