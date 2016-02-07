@@ -811,6 +811,45 @@ public class Jway {
 
 			fw.write("<p:panel id='searchPanel' header='#{i18n['operations.search']}'>\n");
 			// implementar a pesquisa usando o conceito de entidade filter
+			Statement stmt = conn.createStatement();
+			// Tabela a ser analisada
+
+			ResultSet rset = stmt.executeQuery("SELECT * from " + nomeTabela);
+
+			ResultSetMetaData rsmd = rset.getMetaData();
+
+			// retorna o numero total de colunas
+			int numColumns = rsmd.getColumnCount();
+			System.out.println("tabela " + nomeTabela + ": Total de Colunas = " + numColumns);
+
+			// definindo as colunas
+			for (int i = 0; i < numColumns; i++) {
+
+				fw.write("\n");
+
+
+				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1).toUpperCase())) { // se
+																						// for
+																						// uma
+																						// fk
+					CampoFk fk = mapCamposFk.get(rsmd.getColumnName(i + 1).toUpperCase());
+
+					fw.write(space + "@JoinColumn(name = \"" + fk.getFkColumnName() + "\")");
+					fw.write("\n");
+
+					fw.write(space + "private " + transformaNomeEntidade(fk.getPkTableName()) + " "
+							+ transformaNomeColuna(fk.getPkTableName().toLowerCase()) + ";\n");
+
+				} else {
+					fw.write(space + "@Column(name=\"" + rsmd.getColumnName(i + 1) + "\")\n");
+					fw.write(space + "private "
+							+ transformaTipo(rsmd.getColumnTypeName(i + 1), rsmd.getScale(i + 1),
+									rsmd.getColumnName(i + 1).toLowerCase().contains("id"))
+							+ " " + transformaNomeColuna(rsmd.getColumnName(i + 1)) + ";\n");
+				}
+
+			}
+
 			fw.write("</p:panel>\n");
 
 			fw.write("<br style='clear: left;' />\n");
@@ -822,8 +861,9 @@ public class Jway {
 			fw.write("</div>\n");
 			fw.write("</h:panelGroup>\n");
 			// -------- Fim Bloco pesquisa --------------------------------
-			
-			// ------- Inicio Bloco de edição do registro -------------------------
+
+			// ------- Inicio Bloco de edição do registro
+			// -------------------------
 			fw.write("<h:panelGroup id='editPanelGroup' layout='block'\n");
 			fw.write("rendered='#{" + nomeXhtml + "Bean.state eq 'CREATE' or countryBean.state eq 'UPDATE'}'\n");
 			fw.write("styleClass='ui-grid ui-grid-responsive'>\n");
@@ -835,7 +875,7 @@ public class Jway {
 			fw.write("</div>\n");
 			fw.write("</div>\n");
 			fw.write("</h:panelGroup>\n");
-			
+
 			// ------ Inicio de Bloco de remoção do registro
 			fw.write("<h:panelGroup id='removePanelGroup' layout='block'\n");
 			fw.write("rendered='#{" + nomeXhtml + "Bean.state eq 'UPDATE'}'\n");
@@ -843,48 +883,30 @@ public class Jway {
 			fw.write("<div class='ui-grid-row'>\n");
 			fw.write("<div class='ui-grid-col-12'>\n");
 			fw.write("<p:panel id='removePanel'>\n");
-			fw.write(" header='#{i18n['operations.delete']} #{i18n['country']}'> " +
-					" <div class='ui-grid-form ui-grid ui-grid-responsive'> " + 
-					"	<div class='ui-grid-row'> " + 
-						"	<div class='ui-grid-col-12'> " + 
-						"			<h3>" +
-						"				<h:outputFormat" +
-						"					value='#{i18n['operations.delete.areYouSure']}'>" +
-						"					<f:param value='#{countryBean.item.name}' />" +
-						"					</h:outputFormat>" +
-						"			</h3>" +
-						"		</div>" +
-						"	</div>" +
-						"	</div>" +
-						"	<f:facet name='footer'>" +
-						"	<p:commandButton value='#{i18n['button.cancel']}'" +
-						"		icon='ui-icon-close' process='@this' update='@form'" +
-						"		immediate='true' styleClass='buttonCancel'" +
-						"		style='float: left;'>" +
-						"		<f:setPropertyActionListener target='#{countryBean.state}'" +
-						"			value='READ' />" +
-						"	</p:commandButton>" +
-						"	<p:commandButton id='buttonRemove'" +
-						"		value='#{i18n['button.remove']}'" +
-						"		action='#{countryBean.delete}' icon='ui-icon-trash'" +
-						"		process='@this' update='@form' style='float: right;'>" +
-						"		<f:setPropertyActionListener target='#{countryBean.state}'" +
-						"			value='READ' />" +
-						"	</p:commandButton>" +
-						"	<div style='clear: both;'></div>" +
-						"	</f:facet>" +
-						"	</p:panel>" +
-						"	</div>" +
-						"	</div>\n");
-			
+			fw.write(" header='#{i18n['operations.delete']} #{i18n['country']}'> "
+					+ " <div class='ui-grid-form ui-grid ui-grid-responsive'> " + "	<div class='ui-grid-row'> "
+					+ "	<div class='ui-grid-col-12'> " + "			<h3>" + "				<h:outputFormat"
+					+ "					value='#{i18n['operations.delete.areYouSure']}'>"
+					+ "					<f:param value='#{countryBean.item.name}' />"
+					+ "					</h:outputFormat>" + "			</h3>" + "		</div>" + "	</div>" + "	</div>"
+					+ "	<f:facet name='footer'>" + "	<p:commandButton value='#{i18n['button.cancel']}'"
+					+ "		icon='ui-icon-close' process='@this' update='@form'"
+					+ "		immediate='true' styleClass='buttonCancel'" + "		style='float: left;'>"
+					+ "		<f:setPropertyActionListener target='#{countryBean.state}'" + "			value='READ' />"
+					+ "	</p:commandButton>" + "	<p:commandButton id='buttonRemove'"
+					+ "		value='#{i18n['button.remove']}'"
+					+ "		action='#{countryBean.delete}' icon='ui-icon-trash'"
+					+ "		process='@this' update='@form' style='float: right;'>"
+					+ "		<f:setPropertyActionListener target='#{countryBean.state}'" + "			value='READ' />"
+					+ "	</p:commandButton>" + "	<div style='clear: both;'></div>" + "	</f:facet>" + "	</p:panel>"
+					+ "	</div>" + "	</div>\n");
+
 			// --- Fechando o xhtml -------
 			fw.write("</h:form>\n");
 			fw.write("</h:panelGroup>\n");
 			fw.write("</ui:define>\n");
 			fw.write("</ui:composition>\n");
 			fw.write("</html>\n");
-
-	
 
 		} catch (Exception e) {
 			e.printStackTrace();
