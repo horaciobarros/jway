@@ -809,18 +809,12 @@ public class Jway {
 			fw.write("<div class='ui-grid-row'>\n");
 			fw.write("<div class='ui-grid-col-12'>\n");
 
-			/**
-			 * panel de pesquisa
-			 */
 			fw.write("<p:panel id='searchPanel' header='#{i18n['operations.search']}'>\n");
 			// implementar a pesquisa usando o conceito de entidade filter
 			fw.write("</p:panel>\n");
 
 			fw.write("<br style='clear: left;' />\n");
 
-			/**
-			 * resultado
-			 */
 			fw.write("<p:panel id='viewPanel' header='#{i18n['registros']}'>\n");
 			// implementar a table result
 			fw.write("</p:panel>\n");
@@ -842,7 +836,46 @@ public class Jway {
 			fw.write("</div>\n");
 			fw.write("</h:panelGroup>\n");
 			
-			
+			// ------ Inicio de Bloco de remoção do registro
+			fw.write("<h:panelGroup id='removePanelGroup' layout='block'\n");
+			fw.write("rendered='#{" + nomeXhtml + "Bean.state eq 'UPDATE'}'\n");
+			fw.write("styleClass='ui-grid ui-grid-responsive'>\n");
+			fw.write("<div class='ui-grid-row'>\n");
+			fw.write("<div class='ui-grid-col-12'>\n");
+			fw.write("<p:panel id='removePanel'>\n");
+			fw.write(" header='#{i18n['operations.delete']} #{i18n['country']}'> " +
+					" <div class='ui-grid-form ui-grid ui-grid-responsive'> " + 
+					"	<div class='ui-grid-row'> " + 
+						"	<div class='ui-grid-col-12'> " + 
+						"			<h3>" +
+						"				<h:outputFormat" +
+						"					value='#{i18n['operations.delete.areYouSure']}'>" +
+						"					<f:param value='#{countryBean.item.name}' />" +
+						"					</h:outputFormat>" +
+						"			</h3>" +
+						"		</div>" +
+						"	</div>" +
+						"	</div>" +
+						"	<f:facet name='footer'>" +
+						"	<p:commandButton value='#{i18n['button.cancel']}'" +
+						"		icon='ui-icon-close' process='@this' update='@form'" +
+						"		immediate='true' styleClass='buttonCancel'" +
+						"		style='float: left;'>" +
+						"		<f:setPropertyActionListener target='#{countryBean.state}'" +
+						"			value='READ' />" +
+						"	</p:commandButton>" +
+						"	<p:commandButton id='buttonRemove'" +
+						"		value='#{i18n['button.remove']}'" +
+						"		action='#{countryBean.delete}' icon='ui-icon-trash'" +
+						"		process='@this' update='@form' style='float: right;'>" +
+						"		<f:setPropertyActionListener target='#{countryBean.state}'" +
+						"			value='READ' />" +
+						"	</p:commandButton>" +
+						"	<div style='clear: both;'></div>" +
+						"	</f:facet>" +
+						"	</p:panel>" +
+						"	</div>" +
+						"	</div>\n");
 			
 			// --- Fechando o xhtml -------
 			fw.write("</h:form>\n");
