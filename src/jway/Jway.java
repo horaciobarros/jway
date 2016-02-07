@@ -827,7 +827,10 @@ public class Jway {
 
 				fw.write("\n");
 
-
+				// o label
+				fw.write("<h:outputText value='" + rsmd.getColumnName(i + 1).toUpperCase() + ":' />");
+				
+				
 				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1).toUpperCase())) { // se
 																						// for
 																						// uma
