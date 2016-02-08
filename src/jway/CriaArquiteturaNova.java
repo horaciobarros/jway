@@ -1049,7 +1049,38 @@ public class CriaArquiteturaNova {
 			fw.write("<div class='ui-grid-row'>\n");
 			fw.write("<div class='ui-grid-col-12'>\n");
 			fw.write("<p:panel id='editPanel'>\n");
-			// implementar o edit
+			for (int i = 0; i < numColumns; i++) {
+
+				fw.write("\n"); 
+
+				// o label
+				fw.write("\t\t<h:outputText value='" + rsmd.getColumnName(i + 1).toUpperCase() + ":' />\n");
+				String nomeColuna = rsmd.getColumnName(i + 1);
+
+				/**
+				 * Se for uma fk
+				 */
+				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1).toUpperCase())) { 
+					CampoFk fk = mapCamposFk.get(rsmd.getColumnName(i + 1).toUpperCase());
+
+					fw.write("\t\t<p:selectOneMenu id='" + nomeColuna + "'\n");
+					fw.write("\t\t\tvalue='#{" + nomeXhtml + "Bean." + "item." + fk.getPkColumnName() + "}' label='" + nomeColuna.toUpperCase() + "'\n");
+					fw.write("\t\t\t converter='#{itemConverter}'>\n");
+					fw.write("\t\t\t<f:selectItem itemLabel='Escolha' itemValue='' />\n");		
+					fw.write("\t\t\t<f:selectItems value='#{" + nomeXhtml + "Bean.lista" + fk.getFkColumnName() + "}'\n");	
+					fw.write("\t\t\tvar='item' itemValue='#{item}' itemLabel='#{item.descricao}' />\n");
+					fw.write("\t\t</p:selectOneMenu>\n");			
+						
+
+				} else { // campo comum
+					
+					fw.write("\t\t<p:inputText id='" + nomeColuna + "'\n");
+					fw.write("\t\t\tvalue='#{" + nomeXhtml + "Bean.itemFilter." + nomeColuna + "}'>\n ");
+					fw.write("\t\t</p:inputText>\n");
+					
+				}
+
+			}
 			fw.write("</p:panel>\n");
 			fw.write("</div>\n");
 			fw.write("</div>\n");
