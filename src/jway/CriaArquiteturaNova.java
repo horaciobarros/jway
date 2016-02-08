@@ -188,6 +188,7 @@ public class CriaArquiteturaNova {
 		criarPasta(daoImplPath);
 		criarPasta(daoPath);
 		criarPasta(beanPath);
+		criarPasta(viewPath);
 	}
 
 	private void criaEntidade(String nomeTabela) throws SQLException {
@@ -473,11 +474,6 @@ public class CriaArquiteturaNova {
 		}
 
 		return tipo;
-
-	}
-
-	private void criaViewJsf(String nomeTabela) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -925,6 +921,177 @@ public class CriaArquiteturaNova {
 			fw.close();
 
 		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+	
+	private void criaViewJsf(String nomeTabela) {
+		// criando o front end
+		String nomeXhtml = transformaNomeColuna(nomeTabela);
+		String nomeEntidade = transformaNomeEntidade(nomeTabela);
+
+		File fileXhtml = new File(viewPath + nomeXhtml + ".xhtml");
+
+		String space = "   ";
+		try {
+			FileWriter fw = new FileWriter(fileXhtml);
+
+			fw.write(
+					"<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>\n");
+			fw.write("<html xmlns='http://www.w3.org/1999/xhtml'\n");
+			fw.write("xmlns:ui='http://xmlns.jcp.org/jsf/facelets'\n");
+			fw.write("xmlns:h='http://xmlns.jcp.org/jsf/html'\n");
+			fw.write("xmlns:f='http://xmlns.jcp.org/jsf/core'\n");
+			fw.write("xmlns:c='http://xmlns.jcp.org/jsp/jstl/core'\n");
+			fw.write("xmlns:p='http://primefaces.org/ui'\n");
+			fw.write("xmlns:pe='http://primefaces.org/ui/extensions'\n");
+			fw.write("xmlns:pt='http://xmlns.jcp.org/jsf/passthrough'\n");
+			fw.write("xmlns:b='http://bootsfaces.net/ui'");
+			fw.write("xmlns:fn='http://java.sun.com/jsp/jstl/functions'>\n");
+			fw.write("\n"); 
+
+			fw.write("<ui:composition template='/private/template/layout.xhtml'>\n");
+			fw.write("<ui:define name='content'>\n");
+
+			fw.write("<p:growl id='growl' autoUpdate='true' globalOnly='false'showDetail='false' />\n");
+
+			fw.write("<h:panelGroup id='wrapper' layout='block' styleClass='wrapper'>\n");
+			fw.write("<h:form id='form' prependId='false'>\n");
+
+			// ------- Inicio Bloco pesquisa -------------------------
+			fw.write("<h:panelGroup id='viewPanelGroup' layout='block'\n");
+
+			fw.write("rendered=\"#{" + nomeXhtml + "Bean.state eq 'READ'}\"\n");
+			fw.write("styleClass='ui-grid ui-grid-responsive'>\n");
+			fw.write("<div class='ui-grid-row'>\n");
+			fw.write("<div class='ui-grid-col-12'>\n");
+
+			fw.write("\t<p:panel id='searchPanel' header=\"#{i18n['operations.search']}\">\n");
+			// implementar a pesquisa usando o conceito de entidade filter
+			Statement stmt = conn.createStatement();
+
+			ResultSet rset = stmt.executeQuery("SELECT * from " + nomeTabela);
+
+			ResultSetMetaData rsmd = rset.getMetaData();
+
+			// retorna o numero total de colunas
+			int numColumns = rsmd.getColumnCount();
+
+			for (int i = 0; i < numColumns; i++) {
+
+				fw.write("\n"); 
+
+				// o label
+				fw.write("\t\t<h:outputText value='" + rsmd.getColumnName(i + 1).toUpperCase() + ":' />\n");
+				String nomeColuna = rsmd.getColumnName(i + 1);
+
+				/**
+				 * Se for uma fk
+				 */
+				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1).toUpperCase())) { 
+					CampoFk fk = mapCamposFk.get(rsmd.getColumnName(i + 1).toUpperCase());
+
+					fw.write("\t\t<p:selectOneMenu id='" + nomeColuna + "'\n");
+					fw.write("\t\t\tvalue='#{" + nomeXhtml + "Bean." + "item." + fk.getPkColumnName() + "}' label='" + nomeColuna.toUpperCase() + "'\n");
+					fw.write("\t\t\t converter='#{itemConverter}'>\n");
+					fw.write("\t\t\t<f:selectItem itemLabel='Escolha' itemValue='' />\n");		
+					fw.write("\t\t\t<f:selectItems value='#{" + nomeXhtml + "Bean.lista" + fk.getFkColumnName() + "}'\n");	
+					fw.write("\t\t\tvar='item' itemValue='#{item}' itemLabel='#{item.descricao}' />\n");
+					fw.write("\t\t</p:selectOneMenu>\n");			
+						
+
+				} else { // campo comum
+					
+					fw.write("\t\t<p:inputText id='" + nomeColuna + "'\n");
+					fw.write("\t\t\tvalue='#{" + nomeXhtml + "Bean.itemFilter." + nomeColuna + "}'>\n ");
+					fw.write("\t\t</p:inputText>\n");
+					
+				}
+
+			}
+
+			fw.write("\t</p:panel>\n");
+
+			fw.write("<br style='clear: left;' />\n");
+
+			fw.write("\t<p:panel id='viewPanel' header=\"#{i18n['registros']}\">\n");
+			// implementar a table result
+			fw.write("\t<p:dataTable id='mainDataTable' value='#{" + nomeXhtml + "Bean.items}'");
+			fw.write("\tvar='item'>");	
+			for (int i = 0; i < numColumns; i++) {
+				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1).toUpperCase())) { 
+					continue; // na table, implementar mais tarde o modo de mostrar as fks
+				}
+				fw.write("\t\t<p:column headerText='#' width='30' style='text-align: center;'>\n");
+				fw.write("\t\t\t\t<h:outputText value='#{item." + rsmd.getColumnName(i + 1) + "}' />\n");
+				fw.write("\t\t</p:column>\n");
+				fw.write("\n");
+			
+
+			}
+			fw.write("\t</p:dataTable>\n");
+			
+			
+			fw.write("\t</p:panel>\n");
+			fw.write("</div>\n");
+			fw.write("</div>\n");
+			fw.write("\t</h:panelGroup>\n");
+			// -------- Fim Bloco pesquisa --------------------------------
+			
+			
+			
+			// ------- Inicio Bloco de edição do registro
+			// -------------------------
+			fw.write("<h:panelGroup id='editPanelGroup' layout='block'\n");
+			fw.write("rendered=\"#{" + nomeXhtml + "Bean.state eq 'CREATE' or countryBean.state eq 'UPDATE'}\"\n");
+			fw.write("styleClass='ui-grid ui-grid-responsive'>\n");
+			fw.write("<div class='ui-grid-row'>\n");
+			fw.write("<div class='ui-grid-col-12'>\n");
+			fw.write("<p:panel id='editPanel'>\n");
+			// implementar o edit
+			fw.write("</p:panel>\n");
+			fw.write("</div>\n");
+			fw.write("</div>\n");
+			fw.write("</h:panelGroup>\n");
+
+			// ------ Inicio de Bloco de remoção do registro
+			fw.write("<h:panelGroup id='removePanelGroup' layout='block'\n");
+			fw.write("rendered=\"#{" + nomeXhtml + "Bean.state eq 'UPDATE'}\"\n");
+			fw.write("styleClass='ui-grid ui-grid-responsive'>\n");
+			fw.write("<div class='ui-grid-row'>\n");
+			fw.write("<div class='ui-grid-col-12'>\n");
+			fw.write("<p:panel id='removePanel'>\n");
+			fw.write(" header=\"#{i18n['operations.delete']} #{i18n['country']}\">\n "
+					+ " <div class='ui-grid-form ui-grid ui-grid-responsive'> " + "	<div class='ui-grid-row'>\n "
+					+ "	<div class='ui-grid-col-12'> " + "			<h3>" + "				<h:outputFormat"
+					+ "					value=\"#{i18n['operations.delete.areYouSure']}\">\n"
+					+ "					<f:param value='#{countryBean.item.name}' />\n"
+					+ "					</h:outputFormat>" + "			</h3>" + "		</div>\n" + "	</div>\n" + "	</div>\n"
+					+ "	<f:facet name='footer'>" + "	<p:commandButton value=\"#{i18n['button.cancel']}\"\n"
+					+ "		icon='ui-icon-close' process='@this' update='@form'"
+					+ "		immediate='true' styleClass='buttonCancel'" + "		style='float: left;'>\n"
+					+ "		<f:setPropertyActionListener target=\"#{countryBean.state}\"" + "			value='READ' />\n"
+					+ "	</p:commandButton>" + "	<p:commandButton id='buttonRemove'"
+					+ "		value=\"#{i18n['button.remove']}\""
+					+ "		action='#{countryBean.delete}' icon='ui-icon-trash'"
+					+ "		process='@this' update='@form' style='float: right;'>\n"
+					+ "		<f:setPropertyActionListener target=\"#{countryBean.state}\"" + "			value='READ' />\n"
+					+ "	</p:commandButton>" + "	<div style='clear: both;'>\n</div>\n" + "	</f:facet>\n" + "	</p:panel>\n"
+					+ "	</div>\n" + "	</div>\n");
+
+			// --- Fechando o xhtml -------
+			fw.write("</h:panelGroup>\n");
+			fw.write("</h:form>\n");
+			fw.write("</h:panelGroup>\n");
+			fw.write("</ui:define>\n");
+			fw.write("</ui:composition>\n");
+			fw.write("</html>\n");
+			
+			fw.flush();
+			fw.close();
+
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
