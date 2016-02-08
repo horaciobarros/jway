@@ -812,7 +812,6 @@ public class Jway {
 			fw.write("<p:panel id='searchPanel' header='#{i18n['operations.search']}'>\n");
 			// implementar a pesquisa usando o conceito de entidade filter
 			Statement stmt = conn.createStatement();
-			// Tabela a ser analisada
 
 			ResultSet rset = stmt.executeQuery("SELECT * from " + nomeTabela);
 
@@ -820,35 +819,36 @@ public class Jway {
 
 			// retorna o numero total de colunas
 			int numColumns = rsmd.getColumnCount();
-			System.out.println("tabela " + nomeTabela + ": Total de Colunas = " + numColumns);
 
-			// definindo as colunas
 			for (int i = 0; i < numColumns; i++) {
 
-				fw.write("\n");
+				fw.write("\n"); 
 
 				// o label
-				fw.write("<h:outputText value='" + rsmd.getColumnName(i + 1).toUpperCase() + ":' />");
-				
-				
-				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1).toUpperCase())) { // se
-																						// for
-																						// uma
-																						// fk
+				fw.write("<h:outputText value='" + rsmd.getColumnName(i + 1).toUpperCase() + ":' />\n");
+				String nomeColuna = rsmd.getColumnName(i + 1);
+
+				/**
+				 * Se for uma fk
+				 */
+				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1).toUpperCase())) { 
 					CampoFk fk = mapCamposFk.get(rsmd.getColumnName(i + 1).toUpperCase());
 
-					fw.write(space + "@JoinColumn(name = \"" + fk.getFkColumnName() + "\")");
-					fw.write("\n");
+					fw.write("<p:selectOneMenu id='" + nomeColuna + "'\n");
+					fw.write("value='#{" + nomeEntidade + "Bean." + "item." + fk.getPkColumnName() + "}' label='" + nomeColuna.toUpperCase() + "'\n");
+					fw.write(" converter='#{itemConverter}'>\n");
+					fw.write("<f:selectItem itemLabel='Escolha' itemValue='' />\n");		
+					fw.write("<f:selectItems value='#{" + nomeEntidade + "Bean.lista" + fk.getFkColumnName() + "}'\n");	
+					fw.write("var='item' itemValue='#{item}' itemLabel='#{item.descricao}' />\n");
+					fw.write("</p:selectOneMenu>\n");			
+						
 
-					fw.write(space + "private " + transformaNomeEntidade(fk.getPkTableName()) + " "
-							+ transformaNomeColuna(fk.getPkTableName().toLowerCase()) + ";\n");
-
-				} else {
-					fw.write(space + "@Column(name=\"" + rsmd.getColumnName(i + 1) + "\")\n");
-					fw.write(space + "private "
-							+ transformaTipo(rsmd.getColumnTypeName(i + 1), rsmd.getScale(i + 1),
-									rsmd.getColumnName(i + 1).toLowerCase().contains("id"))
-							+ " " + transformaNomeColuna(rsmd.getColumnName(i + 1)) + ";\n");
+				} else { // campo comum
+					
+					fw.write("<p:inputText id='" + nomeColuna + "'\n");
+					fw.write("value='#{'" + nomeEntidade + "Bean.itemFilter'>\n ");
+					fw.write("</p:inputText>\n");
+					
 				}
 
 			}
