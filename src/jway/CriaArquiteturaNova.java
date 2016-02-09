@@ -1048,7 +1048,7 @@ public class CriaArquiteturaNova {
 			// implementar a table result
 			fw.write(space + space +"\t<p:dataTable id='mainDataTable' value='#{" + nomeXhtml
 					+ "Bean.items}'");
-			fw.write(space + space +"\tvar='item'>\n");
+			fw.write(space + space +"\tvar='itemView'>\n");
 			for (int i = 0; i < numColumns; i++) {
 				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1)
 						.toUpperCase())) {
@@ -1056,7 +1056,7 @@ public class CriaArquiteturaNova {
 								// mostrar as fks
 				}
 				fw.write(space + space +"\t\t<p:column headerText='" + transformaNomeColunaParaTexto(rsmd.getColumnName(i + 1)) + "' width='30' style='text-align: center;'>\n");
-				fw.write(space + space +"\t\t\t\t<h:outputText value='#{item."
+				fw.write(space + space +"\t\t\t\t<h:outputText value='#{itemView."
 						+ transformaNomeColuna(rsmd.getColumnName(i + 1)) + "}' />\n");
 				fw.write(space + space +"\t\t</p:column>\n");
 				fw.write(space + space +"\n");
@@ -1132,7 +1132,7 @@ public class CriaArquiteturaNova {
 
 					fw.write(space + space +"\t\t<p:selectOneMenu id='componente" + contadorDeComponentes + "'\n");
 					contadorDeComponentes++;
-					fw.write(space + space +"\t\t\tvalue='#{" + nomeXhtml + "Bean." + "item}' label='"
+					fw.write(space + space +"\t\t\tvalue='#{" + nomeXhtml + "Bean.item}' label='"
 							+ transformaNomeColunaParaTexto(nomeColuna) + "'\n");
 					fw.write(space + space +"\t\t\t converter='#{itemConverter}'>\n");
 					fw.write(space + space +"\t\t\t<f:selectItem itemLabel='Escolha' itemValue='' />\n");
@@ -1145,7 +1145,7 @@ public class CriaArquiteturaNova {
 
 					fw.write(space + space +"\t\t<p:inputText id='componente" + contadorDeComponentes + "'\n");
 					contadorDeComponentes++;
-					fw.write(space + space +"\t\t\tvalue='#{" + nomeXhtml + "Bean.itemFilter."
+					fw.write(space + space +"\t\t\tvalue='#{" + nomeXhtml + "Bean.item."
 							+ transformaNomeColuna(nomeColuna) + "}'>\n ");
 					fw.write(space + space +"\t\t</p:inputText>\n");
 
