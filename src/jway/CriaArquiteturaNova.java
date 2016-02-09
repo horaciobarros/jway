@@ -473,18 +473,22 @@ public class CriaArquiteturaNova {
 
 			fw.write("\n");
 
-			fw.write(space + "List<" + nomeEntidade + "> list();\n");
+			fw.write(space + "List<" + nomeEntidade + "> list();\n\n");
 
-			fw.write(space + nomeEntidade + " read(long id);\n");
+			fw.write(space + nomeEntidade + " read(long id);\n\n");
 
-			fw.write(space + "void create(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + ");\n");
+			fw.write(space + "void create(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + ");\n\n");
 
 			fw.write(space + nomeEntidade + " update(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade)
-					+ ");\n");
+					+ ");\n\n");
 
-			fw.write(space + "void delete(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + ");\n");
+			fw.write(space + "void delete(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + ");\n\n");
 
-			fw.write(space + "void delete(long id);\n");
+			fw.write(space + "void delete(long id);\n\n");
+
+			// --
+			fw.write(space + "public List<" + nomeEntidade + "> pesquisa(" + nomeEntidade + " "
+					+ transformaNomeColuna(nomeEntidade) + ");\n\n");
 
 			fw.write("}"); // final da interface
 
@@ -574,10 +578,19 @@ public class CriaArquiteturaNova {
 					+ " = em.getReference(" + nomeEntidade + ".class, id);\n");
 			fw.write(space + space + "delete(" + transformaNomeColuna(nomeEntidade) + ");\n");
 			fw.write(space + "}\n");
+
+			// --
+			fw.write(space + "@Override\n");
+			fw.write(space + "public List<" + nomeEntidade + "> pesquisa(" + nomeEntidade + " "
+					+ transformaNomeColuna(nomeEntidade) + "){\n");
+			// implementar a consulta sql atendendo ao filtro
+			fw.write(space + space+ "return null;");
+			fw.write(space + "}\n");
+
 			fw.write(space + "\n");
 			fw.write(space + "\n");
 
-			fw.write("}"); // final da classe dao
+			fw.write("}"); // final da classe daoImpl
 
 			fw.flush();
 			fw.close();
@@ -623,6 +636,11 @@ public class CriaArquiteturaNova {
 			fw.write(space + "public void delete(long id);\n\n");
 
 			fw.write(space + "public " + nomeEntidade + " read(long id);\n\n");
+
+			// --
+			fw.write(space + "public List<" + nomeEntidade + "> pesquisa(" + nomeEntidade + " "
+					+ transformaNomeColuna(nomeEntidade) + ");\n");
+
 
 			fw.write("}"); // final da interface
 
@@ -701,6 +719,14 @@ public class CriaArquiteturaNova {
 			fw.write(space + "@Override\n");
 			fw.write(space + "public List<" + nomeEntidade + "> list(){\n");
 			fw.write(space + space + "return dao.list();\n ");
+
+			fw.write(space + "}\n");
+
+			// --
+			fw.write(space + "@Override\n");
+			fw.write(space + "public List<" + nomeEntidade + "> pesquisa(" + nomeEntidade + " "
+					+ transformaNomeColuna(nomeEntidade) + "){\n");
+			fw.write(space + space + "return dao.pesquisa(" + transformaNomeColuna(nomeEntidade) + ");\n ");
 
 			fw.write(space + "}\n");
 
@@ -886,7 +912,7 @@ public class CriaArquiteturaNova {
 			fw.write(space + "}\n");
 			fw.write(space + "\n");
 			fw.write(space + "public void pesquisa(){\n");
-			fw.write(space + "\n");
+			fw.write(space + space + "items = service.pesquisa(item);\n");
 			fw.write(space + "}\n");
 			fw.write(space + "\n");
 			fw.write(space + "public void limpaPesquisa(){\n");
@@ -952,7 +978,8 @@ public class CriaArquiteturaNova {
 		try {
 			FileWriter fw = new FileWriter(fileXhtml);
 
-			fw.write("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>\n");
+			fw.write(
+					"<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>\n");
 			fw.write("<html xmlns='http://www.w3.org/1999/xhtml'\n");
 			fw.write("xmlns:ui='http://xmlns.jcp.org/jsf/facelets'\n");
 			fw.write("xmlns:h='http://xmlns.jcp.org/jsf/html'\n");
@@ -971,17 +998,17 @@ public class CriaArquiteturaNova {
 			fw.write(space + "<p:growl id='growl' autoUpdate='true' globalOnly='false' showDetail='false' />\n");
 
 			fw.write(space + "<h:panelGroup id='wrapper' layout='block' styleClass='wrapper'>\n");
-			fw.write(space + space +"<h:form id='form' prependId='false'>\n");
+			fw.write(space + space + "<h:form id='form' prependId='false'>\n");
 
 			// ------- Inicio Bloco pesquisa -------------------------
-			fw.write(space + space +"<h:panelGroup id='viewPanelGroup' layout='block'\n");
+			fw.write(space + space + "<h:panelGroup id='viewPanelGroup' layout='block'\n");
 
-			fw.write(space + space +"rendered=\"#{" + nomeXhtml + "Bean.state eq 'READ'}\"\n");
-			fw.write(space + space +"styleClass='ui-grid ui-grid-responsive'>\n");
-			fw.write(space + space +"<div class='ui-grid-row'>\n");
-			fw.write(space + space +"<div class='ui-grid-col-12'>\n");
+			fw.write(space + space + "rendered=\"#{" + nomeXhtml + "Bean.state eq 'READ'}\"\n");
+			fw.write(space + space + "styleClass='ui-grid ui-grid-responsive'>\n");
+			fw.write(space + space + "<div class='ui-grid-row'>\n");
+			fw.write(space + space + "<div class='ui-grid-col-12'>\n");
 
-			fw.write(space + space +"\t<p:panel id='searchPanel' header=\"#{i18n['operations.search']}\">\n");
+			fw.write(space + space + "\t<p:panel id='searchPanel' header=\"#{i18n['operations.search']}\">\n");
 			// implementar a pesquisa usando o conceito de entidade filter
 			Statement stmt = conn.createStatement();
 
@@ -991,255 +1018,244 @@ public class CriaArquiteturaNova {
 
 			// retorna o numero total de colunas
 			int numColumns = rsmd.getColumnCount();
-			
+
 			int contadorDeComponentes = 1;
 
 			for (int i = 0; i < numColumns; i++) {
-				
-				fw.write(space + space +"\n");
+
+				fw.write(space + space + "\n");
 
 				// o label
-				fw.write(space + space +"\t\t<h:outputText value='"
+				fw.write(space + space + "\t\t<h:outputText value='"
 						+ transformaNomeColunaParaTexto(rsmd.getColumnName(i + 1).toUpperCase()) + ":' />\n");
 				String nomeColuna = rsmd.getColumnName(i + 1);
 
 				/**
 				 * Se for uma fk
 				 */
-				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1)
-						.toUpperCase())) {
-					CampoFk fk = mapCamposFk.get(rsmd.getColumnName(i + 1)
-							.toUpperCase());
+				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1).toUpperCase())) {
+					CampoFk fk = mapCamposFk.get(rsmd.getColumnName(i + 1).toUpperCase());
 
-					fw.write(space + space +"\t\t<p:selectOneMenu id='componente" + contadorDeComponentes + "'\n");
+					fw.write(space + space + "\t\t<p:selectOneMenu id='componente" + contadorDeComponentes + "'\n");
 					contadorDeComponentes++;
-					fw.write(space + space +"\t\t\tvalue='#{" + nomeXhtml + "Bean." + "item}' label='"
+					fw.write(space + space + "\t\t\tvalue='#{" + nomeXhtml + "Bean." + "item}' label='"
 							+ transformaNomeColunaParaTexto(nomeColuna) + "'\n");
-					fw.write(space + space +"\t\t\t converter='#{itemConverter}'>\n");
-					fw.write(space + space +"\t\t\t<f:selectItem itemLabel='Escolha' itemValue='' />\n");
-					fw.write(space + space +"\t\t\t<f:selectItems value='#{" + nomeXhtml
-							+ "Bean.lista" + transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "}'\n");
-					fw.write(space + space +"\t\t\tvar='item' itemValue='#{item}' itemLabel='#{item.id}' />\n");
-					fw.write(space + space +"\t\t</p:selectOneMenu>\n");
+					fw.write(space + space + "\t\t\t converter='#{itemConverter}'>\n");
+					fw.write(space + space + "\t\t\t<f:selectItem itemLabel='Escolha' itemValue='' />\n");
+					fw.write(space + space + "\t\t\t<f:selectItems value='#{" + nomeXhtml + "Bean.lista"
+							+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "}'\n");
+					fw.write(space + space + "\t\t\tvar='item' itemValue='#{item}' itemLabel='#{item.id}' />\n");
+					fw.write(space + space + "\t\t</p:selectOneMenu>\n");
 
 				} else { // campo comum
 
-					fw.write(space + space +"\t\t<p:inputText id='componente" + contadorDeComponentes + "'\n");
+					fw.write(space + space + "\t\t<p:inputText id='componente" + contadorDeComponentes + "'\n");
 					contadorDeComponentes++;
-					fw.write(space + space +"\t\t\tvalue='#{" + nomeXhtml + "Bean.itemFilter."
+					fw.write(space + space + "\t\t\tvalue='#{" + nomeXhtml + "Bean.itemFilter."
 							+ transformaNomeColuna(nomeColuna) + "}'>\n ");
-					fw.write(space + space +"\t\t</p:inputText>\n");
+					fw.write(space + space + "\t\t</p:inputText>\n");
 
 				}
 
 			}
-			
+
 			fw.write(space + "<div align=\"right\">\n");
 			fw.write(space + space + "<p:commandButton value='Pesquisar' id='buttonPesquisa'\n");
-			fw.write(space + space + "update='viewPanel' actionListener='#{" + nomeXhtml + "Bean.pesquisa()}'\n");	
-			fw.write(space + space + "styleClass='ui-priority-primary' />\n");		
-			fw.write(space + "</div>\n");		
-			
-			fw.write(space + space +"\t</p:panel>\n");
+			fw.write(space + space + "update='viewPanel' actionListener='#{" + nomeXhtml + "Bean.pesquisa()}'\n");
+			fw.write(space + space + "styleClass='ui-priority-primary' />\n");
+			fw.write(space + "</div>\n");
 
-			fw.write(space + space +"<br style='clear: left;' />\n");
+			fw.write(space + space + "\t</p:panel>\n");
 
-			fw.write(space + space +"\t<p:panel id='viewPanel' header=\"#{i18n['" + nomeXhtml + "']}\">\n");
+			fw.write(space + space + "<br style='clear: left;' />\n");
+
+			fw.write(space + space + "\t<p:panel id='viewPanel' header=\"#{i18n['" + nomeXhtml + "']}\">\n");
 			// implementar a table result
-			fw.write(space + space +"\t<p:dataTable id='mainDataTable' value='#{" + nomeXhtml
-					+ "Bean.items}'");
-			fw.write(space + space +"\tvar='itemView'>\n");
+			fw.write(space + space + "\t<p:dataTable id='mainDataTable' value='#{" + nomeXhtml + "Bean.items}'");
+			fw.write(space + space + "\tvar='itemView'>\n");
 			for (int i = 0; i < numColumns; i++) {
-				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1)
-						.toUpperCase())) {
+				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1).toUpperCase())) {
 					continue; // na table, implementar mais tarde o modo de
 								// mostrar as fks
 				}
-				fw.write(space + space +"\t\t<p:column headerText='" + transformaNomeColunaParaTexto(rsmd.getColumnName(i + 1)) + "' width='30' style='text-align: center;'>\n");
-				fw.write(space + space +"\t\t\t\t<h:outputText value='#{itemView."
+				fw.write(space + space + "\t\t<p:column headerText='"
+						+ transformaNomeColunaParaTexto(rsmd.getColumnName(i + 1))
+						+ "' width='30' style='text-align: center;'>\n");
+				fw.write(space + space + "\t\t\t\t<h:outputText value='#{itemView."
 						+ transformaNomeColuna(rsmd.getColumnName(i + 1)) + "}' />\n");
-				fw.write(space + space +"\t\t</p:column>\n");
-				fw.write(space + space +"\n");
+				fw.write(space + space + "\t\t</p:column>\n");
+				fw.write(space + space + "\n");
 
 			}
-			fw.write(space + space + space + space +"<p:column headerText=\"#{i18n['operations']}\" width='70'\n");
+			fw.write(space + space + space + space + "<p:column headerText=\"#{i18n['operations']}\" width='70'\n");
 			fw.write(space + space + space + space + space + space + "style='text-align: center;'>\n");
 			fw.write(space + space + space + space + space + space + "<p:commandButton id='buttonOperationEdit'\n");
-			fw.write(space + space + space + space + space + space + space + "icon='ui-icon-pencil' process='@this' update='@form'\n");
-			fw.write(space + space + space + space + space + space + space + "resetValues='true' immediate='true'>\n");			
-			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{" + nomeXhtml + "Bean.item}'\n");			
-			fw.write(space + space + space + space + space + space + space + "value='#{item}' />\n");			
-			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{" + nomeXhtml + "Bean.state}'\n");
-			fw.write(space + space + space + space + space + space + space + "value='UPDATE' />\n");			
-			fw.write(space + space + space + space + space + space + "</p:commandButton>\n");				
-			fw.write(space + space + space + space + space + space + "<p:commandButton id='buttonOperationRemove'\n");		
-			fw.write(space + space + space + space + space + space + space + "icon='ui-icon-trash' process='@this' update='@form'\n");		
-			fw.write(space + space + space + space + space + space + space + "immediate='true'>\n");			
-			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{" + nomeXhtml + "Bean.item}'\n");			
-			fw.write(space + space + space + space + space + space + space + "value='#{item}' />\n");			
-			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{" + nomeXhtml + "Bean.state}'\n");				
-			fw.write(space + space + space + space + space + space + space + "value='DELETE' />\n");			
-			fw.write(space + space + space + space + space + space + "</p:commandButton>\n");				
-			fw.write(space + space + space + space + "</p:column>\n");		
-				
-			fw.write(space + space +"\t</p:dataTable>\n");
+			fw.write(space + space + space + space + space + space + space
+					+ "icon='ui-icon-pencil' process='@this' update='@form'\n");
+			fw.write(space + space + space + space + space + space + space + "resetValues='true' immediate='true'>\n");
+			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{"
+					+ nomeXhtml + "Bean.item}'\n");
+			fw.write(space + space + space + space + space + space + space + "value='#{item}' />\n");
+			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{"
+					+ nomeXhtml + "Bean.state}'\n");
+			fw.write(space + space + space + space + space + space + space + "value='UPDATE' />\n");
+			fw.write(space + space + space + space + space + space + "</p:commandButton>\n");
+			fw.write(space + space + space + space + space + space + "<p:commandButton id='buttonOperationRemove'\n");
+			fw.write(space + space + space + space + space + space + space
+					+ "icon='ui-icon-trash' process='@this' update='@form'\n");
+			fw.write(space + space + space + space + space + space + space + "immediate='true'>\n");
+			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{"
+					+ nomeXhtml + "Bean.item}'\n");
+			fw.write(space + space + space + space + space + space + space + "value='#{item}' />\n");
+			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{"
+					+ nomeXhtml + "Bean.state}'\n");
+			fw.write(space + space + space + space + space + space + space + "value='DELETE' />\n");
+			fw.write(space + space + space + space + space + space + "</p:commandButton>\n");
+			fw.write(space + space + space + space + "</p:column>\n");
 
-			fw.write(space + space +"\t</p:panel>\n");
-			fw.write(space + space +"</div>\n");
-			fw.write(space + space +"</div>\n");
-			fw.write(space + space +"\t</h:panelGroup>\n");
+			fw.write(space + space + "\t</p:dataTable>\n");
+
+			fw.write(space + space + "\t</p:panel>\n");
+			fw.write(space + space + "</div>\n");
+			fw.write(space + space + "</div>\n");
+			fw.write(space + space + "\t</h:panelGroup>\n");
 			// -------- Fim Bloco pesquisa --------------------------------
 
 			// ------- Inicio Bloco de edição do registro
 			// -------------------------
-			fw.write(space + space +"<h:panelGroup id='editPanelGroup' layout='block'\n");
-			fw.write(space + space +"rendered=\"#{" + nomeXhtml + "Bean.state eq 'CREATE' or "
-					+ nomeXhtml + "Bean.state eq 'UPDATE'}\"\n");
-			fw.write(space + space +"styleClass='ui-grid ui-grid-responsive'>\n");
-			fw.write(space + space +"<div class='ui-grid-row'>\n");
-			fw.write(space + space +"<div class='ui-grid-col-12'>\n");
-			fw.write(space + space +"<p:panel id='editPanel'>\n");
-			
-			fw.write(space + space +"<f:facet name='header'>\n");
-			fw.write(space + space +"<h:outputText\n");
-			fw.write(space + space +"value=\"#{i18n['operations.create']} #{i18n['" + nomeXhtml + "']}\"");	
-			fw.write(space + space +"rendered=\"#{" + nomeXhtml + "Bean.state eq 'CREATE'}\" />\n");	
-			fw.write(space + space +"<h:outputText\n");
-			fw.write(space + space +"value=\"#{i18n['operations.update']} #{i18n['" + nomeXhtml + "']}\"\n");	
-			fw.write(space + space +"rendered=\"#{" + nomeXhtml + "Bean.state eq 'UPDATE'}\" />\n");	
-		    fw.write(space + space +"</f:facet>\n");
-			
-		    fw.write(space + space +"<div class='ui-grid-form ui-grid ui-grid-responsive'>");
-			fw.write(space + space +"<div class='ui-grid-row'>");
-				
+			fw.write(space + space + "<h:panelGroup id='editPanelGroup' layout='block'\n");
+			fw.write(space + space + "rendered=\"#{" + nomeXhtml + "Bean.state eq 'CREATE' or " + nomeXhtml
+					+ "Bean.state eq 'UPDATE'}\"\n");
+			fw.write(space + space + "styleClass='ui-grid ui-grid-responsive'>\n");
+			fw.write(space + space + "<div class='ui-grid-row'>\n");
+			fw.write(space + space + "<div class='ui-grid-col-12'>\n");
+			fw.write(space + space + "<p:panel id='editPanel'>\n");
+
+			fw.write(space + space + "<f:facet name='header'>\n");
+			fw.write(space + space + "<h:outputText\n");
+			fw.write(space + space + "value=\"#{i18n['operations.create']} #{i18n['" + nomeXhtml + "']}\"");
+			fw.write(space + space + "rendered=\"#{" + nomeXhtml + "Bean.state eq 'CREATE'}\" />\n");
+			fw.write(space + space + "<h:outputText\n");
+			fw.write(space + space + "value=\"#{i18n['operations.update']} #{i18n['" + nomeXhtml + "']}\"\n");
+			fw.write(space + space + "rendered=\"#{" + nomeXhtml + "Bean.state eq 'UPDATE'}\" />\n");
+			fw.write(space + space + "</f:facet>\n");
+
+			fw.write(space + space + "<div class='ui-grid-form ui-grid ui-grid-responsive'>");
+			fw.write(space + space + "<div class='ui-grid-row'>");
+
 			for (int i = 0; i < numColumns; i++) {
-				fw.write(space + space +"<div class='ui-grid-col-6'>");
-				
-				fw.write(space + space +"\n");
+				fw.write(space + space + "<div class='ui-grid-col-6'>");
+
+				fw.write(space + space + "\n");
 
 				// o label
-				fw.write(space + space +"\t\t<h:outputText value='"
+				fw.write(space + space + "\t\t<h:outputText value='"
 						+ transformaNomeColunaParaTexto(rsmd.getColumnName(i + 1)) + ":' />\n");
 				String nomeColuna = rsmd.getColumnName(i + 1);
 
 				/**
 				 * Se for uma fk
 				 */
-				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1)
-						.toUpperCase())) {
-					CampoFk fk = mapCamposFk.get(rsmd.getColumnName(i + 1)
-							.toUpperCase());
+				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1).toUpperCase())) {
+					CampoFk fk = mapCamposFk.get(rsmd.getColumnName(i + 1).toUpperCase());
 
-					fw.write(space + space +"\t\t<p:selectOneMenu id='componente" + contadorDeComponentes + "'\n");
+					fw.write(space + space + "\t\t<p:selectOneMenu id='componente" + contadorDeComponentes + "'\n");
 					contadorDeComponentes++;
-					fw.write(space + space +"\t\t\tvalue='#{" + nomeXhtml + "Bean.item}' label='"
+					fw.write(space + space + "\t\t\tvalue='#{" + nomeXhtml + "Bean.item}' label='"
 							+ transformaNomeColunaParaTexto(nomeColuna) + "'\n");
-					fw.write(space + space +"\t\t\t converter='#{itemConverter}'>\n");
-					fw.write(space + space +"\t\t\t<f:selectItem itemLabel='Escolha' itemValue='' />\n");
-					fw.write(space + space +"\t\t\t<f:selectItems value='#{" + nomeXhtml
-							+ "Bean.lista" + transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "}'\n");
-					fw.write(space + space +"\t\t\tvar='item' itemValue='#{item}' itemLabel='#{item.id}' />\n");
-					fw.write(space + space +"\t\t</p:selectOneMenu>\n");
+					fw.write(space + space + "\t\t\t converter='#{itemConverter}'>\n");
+					fw.write(space + space + "\t\t\t<f:selectItem itemLabel='Escolha' itemValue='' />\n");
+					fw.write(space + space + "\t\t\t<f:selectItems value='#{" + nomeXhtml + "Bean.lista"
+							+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "}'\n");
+					fw.write(space + space + "\t\t\tvar='item' itemValue='#{item}' itemLabel='#{item.id}' />\n");
+					fw.write(space + space + "\t\t</p:selectOneMenu>\n");
 
 				} else { // campo comum
 
-					fw.write(space + space +"\t\t<p:inputText id='componente" + contadorDeComponentes + "'\n");
+					fw.write(space + space + "\t\t<p:inputText id='componente" + contadorDeComponentes + "'\n");
 					contadorDeComponentes++;
-					fw.write(space + space +"\t\t\tvalue='#{" + nomeXhtml + "Bean.item."
+					fw.write(space + space + "\t\t\tvalue='#{" + nomeXhtml + "Bean.item."
 							+ transformaNomeColuna(nomeColuna) + "}'>\n ");
-					fw.write(space + space +"\t\t</p:inputText>\n");
+					fw.write(space + space + "\t\t</p:inputText>\n");
 
 				}
-				fw.write(space + space +"</div>\n");
+				fw.write(space + space + "</div>\n");
 
 			}
-			fw.write(space + space +"</div>\n");
-			fw.write(space + space +"</div>\n");
-			
-			fw.write(space + space +"<f:facet name='footer'>\n");
+			fw.write(space + space + "</div>\n");
+			fw.write(space + space + "</div>\n");
+
+			fw.write(space + space + "<f:facet name='footer'>\n");
 			fw.write(space + space + space + "<p:commandButton value=\"#{i18n['button.cancel']}\"\n");
-			fw.write(space + space + space + space +"icon='ui-icon-close' process='@this' update='@form'\n");	
-			fw.write(space + space + space + space +"immediate='true' styleClass='buttonCancel'\n");
-			fw.write(space + space + space + space +"style='float: left;'>\n");
-			fw.write(space + space + space + space +"<f:setPropertyActionListener target='#{" + nomeXhtml + "Bean.state}'\n");	
-			fw.write(space + space + space + space +"value='READ' />\n");	
-			fw.write(space + space + space + "</p:commandButton>\n");		
+			fw.write(space + space + space + space + "icon='ui-icon-close' process='@this' update='@form'\n");
+			fw.write(space + space + space + space + "immediate='true' styleClass='buttonCancel'\n");
+			fw.write(space + space + space + space + "style='float: left;'>\n");
+			fw.write(space + space + space + space + "<f:setPropertyActionListener target='#{" + nomeXhtml
+					+ "Bean.state}'\n");
+			fw.write(space + space + space + space + "value='READ' />\n");
+			fw.write(space + space + space + "</p:commandButton>\n");
 			fw.write(space + space + space + "<p:commandButton id='buttonCreate'\n");
-			fw.write(space + space + space + space +"value=\"#{i18n['button.save']}\" action='#{" + nomeXhtml + "Bean.create}'\n");
-			fw.write(space + space + space + space +"icon='ui-icon-check'\n");	
-			fw.write(space + space + space + space +"rendered=\"#{" + nomeXhtml + "Bean.state eq 'CREATE'}\" process='@form'\n");	
-			fw.write(space + space + space + space +"update='@form' style='float: right;'>\n");	
-			fw.write(space + space + space + space +"<f:setPropertyActionListener target='#{" + nomeXhtml + "Bean.state}'\n");	
-			fw.write(space + space + space + space +"value='READ' />\n");	
-			fw.write(space + space + space + "</p:commandButton>\n");		
+			fw.write(space + space + space + space + "value=\"#{i18n['button.save']}\" action='#{" + nomeXhtml
+					+ "Bean.create}'\n");
+			fw.write(space + space + space + space + "icon='ui-icon-check'\n");
+			fw.write(space + space + space + space + "rendered=\"#{" + nomeXhtml
+					+ "Bean.state eq 'CREATE'}\" process='@form'\n");
+			fw.write(space + space + space + space + "update='@form' style='float: right;'>\n");
+			fw.write(space + space + space + space + "<f:setPropertyActionListener target='#{" + nomeXhtml
+					+ "Bean.state}'\n");
+			fw.write(space + space + space + space + "value='READ' />\n");
+			fw.write(space + space + space + "</p:commandButton>\n");
 			fw.write(space + space + space + "<p:commandButton id='buttonUpdate'\n");
-			fw.write(space + space + space + space +"value=\"#{i18n['button.edit']}\" action='#{" + nomeXhtml + "Bean.update}'\n");
-			fw.write(space + space + space + space +"icon='ui-icon-check'\n");	
-			fw.write(space + space + space + space +"rendered=\"#{" + nomeXhtml + "Bean.state eq 'UPDATE'}\" process='@form'\n");	
-			fw.write(space + space + space + space +"update='@form' style='float: right;'>\n");	
-			fw.write(space + space + space + space +"<f:setPropertyActionListener target='#{" + nomeXhtml + "Bean.state}'\n");	
-			fw.write(space + space + space + space +"value='READ' />\n");	
-			fw.write(space + space + space + "</p:commandButton>\n");		
+			fw.write(space + space + space + space + "value=\"#{i18n['button.edit']}\" action='#{" + nomeXhtml
+					+ "Bean.update}'\n");
+			fw.write(space + space + space + space + "icon='ui-icon-check'\n");
+			fw.write(space + space + space + space + "rendered=\"#{" + nomeXhtml
+					+ "Bean.state eq 'UPDATE'}\" process='@form'\n");
+			fw.write(space + space + space + space + "update='@form' style='float: right;'>\n");
+			fw.write(space + space + space + space + "<f:setPropertyActionListener target='#{" + nomeXhtml
+					+ "Bean.state}'\n");
+			fw.write(space + space + space + space + "value='READ' />\n");
+			fw.write(space + space + space + "</p:commandButton>\n");
 			fw.write(space + space + space + "<p:defaultCommand\n");
-			fw.write(space + space + space + space +"target=\"#{(" + nomeXhtml + "Bean.item.id eq null) ? 'buttonCreate' : 'buttonUpdate'}\" />\n");
-			fw.write(space + space + space + "<div style='clear: both;'></div>\n");	
-			fw.write(space + space +"</f:facet>\n");
-			
-			fw.write(space + space +"</p:panel>\n");
-			fw.write(space + space +"</div>\n");
-			fw.write(space + space +"</div>\n");
-			fw.write(space + space +"</h:panelGroup>\n");
+			fw.write(space + space + space + space + "target=\"#{(" + nomeXhtml
+					+ "Bean.item.id eq null) ? 'buttonCreate' : 'buttonUpdate'}\" />\n");
+			fw.write(space + space + space + "<div style='clear: both;'></div>\n");
+			fw.write(space + space + "</f:facet>\n");
+
+			fw.write(space + space + "</p:panel>\n");
+			fw.write(space + space + "</div>\n");
+			fw.write(space + space + "</div>\n");
+			fw.write(space + space + "</h:panelGroup>\n");
 
 			// ------ Inicio de Bloco de remoção do registro
-			fw.write(space + space +"<h:panelGroup id='removePanelGroup' layout='block'\n");
-			fw.write(space + space +"rendered=\"#{" + nomeXhtml
-					+ "Bean.state eq 'UPDATE'}\"\n");
-			fw.write(space + space +"styleClass='ui-grid ui-grid-responsive'>\n");
-			fw.write(space + space +"<div class='ui-grid-row'>\n");
-			fw.write(space + space +"<div class='ui-grid-col-12'>\n");
-			fw.write(space + space +"<p:panel id='removePanel'\n");
-			fw.write(space + space +" header=\"#{i18n['operations.delete']} #{i18n['"
-					+ nomeXhtml
-					+ "']}\">\n "
-					+ " <div class='ui-grid-form ui-grid ui-grid-responsive'>\n "
-					+ "	<div class='ui-grid-row'>\n "
-					+ "	<div class='ui-grid-col-12'> \n"
-					+ "			<h3>"
-					+ "				<h:outputFormat"
+			fw.write(space + space + "<h:panelGroup id='removePanelGroup' layout='block'\n");
+			fw.write(space + space + "rendered=\"#{" + nomeXhtml + "Bean.state eq 'UPDATE'}\"\n");
+			fw.write(space + space + "styleClass='ui-grid ui-grid-responsive'>\n");
+			fw.write(space + space + "<div class='ui-grid-row'>\n");
+			fw.write(space + space + "<div class='ui-grid-col-12'>\n");
+			fw.write(space + space + "<p:panel id='removePanel'\n");
+			fw.write(space + space + " header=\"#{i18n['operations.delete']} #{i18n['" + nomeXhtml + "']}\">\n "
+					+ " <div class='ui-grid-form ui-grid ui-grid-responsive'>\n " + "	<div class='ui-grid-row'>\n "
+					+ "	<div class='ui-grid-col-12'> \n" + "			<h3>" + "				<h:outputFormat"
 					+ "					value=\"#{i18n['operations.delete.areYouSure']}\">\n"
-					+ "					<f:param value='#{"
-					+ nomeXhtml
-					+ "Bean.item.id}' />\n"
-					+ "					</h:outputFormat>\n"
-					+ "			</h3>\n"
-					+ "		</div>\n"
-					+ "	</div>\n"
-					+ "	</div>\n"
-					+ "	<f:facet name='footer'>"
+					+ "					<f:param value='#{" + nomeXhtml + "Bean.item.id}' />\n"
+					+ "					</h:outputFormat>\n" + "			</h3>\n" + "		</div>\n"
+					+ "	</div>\n" + "	</div>\n" + "	<f:facet name='footer'>"
 					+ "	<p:commandButton value=\"#{i18n['button.cancel']}\"\n"
 					+ "		icon='ui-icon-close' process='@this' update='@form'"
-					+ "		immediate='true' styleClass='buttonCancel'\n"
-					+ "		style='float: left;'>\n"
-					+ "		<f:setPropertyActionListener target=\"#{"
-					+ nomeXhtml
-					+ "Bean.state}\"\n"
-					+ "			value='READ' />\n"
-					+ "	</p:commandButton>"
-					+ "	<p:commandButton id='buttonRemove'\n"
-					+ "		value=\"#{i18n['button.remove']}\"\n"
-					+ "		action='#{"
-					+ nomeXhtml
+					+ "		immediate='true' styleClass='buttonCancel'\n" + "		style='float: left;'>\n"
+					+ "		<f:setPropertyActionListener target=\"#{" + nomeXhtml + "Bean.state}\"\n"
+					+ "			value='READ' />\n" + "	</p:commandButton>" + "	<p:commandButton id='buttonRemove'\n"
+					+ "		value=\"#{i18n['button.remove']}\"\n" + "		action='#{" + nomeXhtml
 					+ "Bean.delete}' icon='ui-icon-trash'\n"
 					+ "		process='@this' update='@form' style='float: right;'>\n"
-					+ "		<f:setPropertyActionListener target=\"#{" + nomeXhtml
-					+ "Bean.state}\"" + "			value='READ' />\n"
-					+ "	</p:commandButton>"
-					+ "	<div style='clear: both;'>\n</div>\n" + "	</f:facet>\n"
-					+ "	</p:panel>\n" + "	</div>\n" + "	</div>\n");
+					+ "		<f:setPropertyActionListener target=\"#{" + nomeXhtml + "Bean.state}\""
+					+ "			value='READ' />\n" + "	</p:commandButton>" + "	<div style='clear: both;'>\n</div>\n"
+					+ "	</f:facet>\n" + "	</p:panel>\n" + "	</div>\n" + "	</div>\n");
 
 			// --- Fechando o xhtml -------
-			fw.write(space + space +"</h:panelGroup>\n");
-			fw.write(space + space +"</h:form>\n");
+			fw.write(space + space + "</h:panelGroup>\n");
+			fw.write(space + space + "</h:form>\n");
 			fw.write(space + "</h:panelGroup>\n");
 			fw.write(space + "</ui:define>\n");
 			fw.write("</ui:composition>\n");
