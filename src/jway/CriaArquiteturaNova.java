@@ -62,7 +62,6 @@ public class CriaArquiteturaNova {
 
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -113,13 +112,11 @@ public class CriaArquiteturaNova {
 			System.out.println(" ----- Processo encerrado ----");
 
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
 	private void criaAmbiente() {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -158,7 +155,6 @@ public class CriaArquiteturaNova {
 				mapCamposFk.put(fkColumnName.toUpperCase(), campoFk);
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -384,7 +380,6 @@ public class CriaArquiteturaNova {
 			fw.close();
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -916,7 +911,6 @@ public class CriaArquiteturaNova {
 					}
 				}
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
