@@ -666,6 +666,7 @@ public class CriaArquiteturaNova {
 
 			fw.write("\n");
 
+			fw.write("import java.io.Serializable;\n");
 			fw.write("import java.util.List;\n");
 			fw.write("import javax.inject.Inject;\n");
 			fw.write("import javax.inject.Named;\n\n");
@@ -676,7 +677,7 @@ public class CriaArquiteturaNova {
 			fw.write("import " + nomePacote + ".service." + nomeInterface + ";\n\n");
 
 			fw.write("@Named\n");
-			fw.write("public class " + nomeInterface + "Impl implements " + nomeInterface + "{\n");
+			fw.write("public class " + nomeInterface + "Impl implements " + nomeInterface + ", Serializable{\n");
 
 			fw.write("\n");
 			fw.write(space + "private static final long serialVersionUID = 1L;\n");
@@ -687,18 +688,21 @@ public class CriaArquiteturaNova {
 			// --
 			// --
 			fw.write(space + "@Override\n");
+			fw.write(space + "@Transactional(propagation = Propagation.REQUIRED)\n");
 			fw.write(space + "public void create(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + "){\n");
 			fw.write(space + space + "dao.create(" + transformaNomeColuna(nomeEntidade) + ");\n");
 			fw.write(space + "}\n");
 
 			// --
 			fw.write(space + "@Override\n");
+			fw.write(space + "@Transactional(propagation = Propagation.REQUIRED)\n");
 			fw.write(space + "public void delete(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + "){\n");
 			fw.write(space + space + "dao.delete(" + transformaNomeColuna(nomeEntidade) + ");\n");
 			fw.write(space + "}\n");
 
 			// --
 			fw.write(space + "@Override\n");
+			fw.write(space + "@Transactional(propagation = Propagation.REQUIRED)\n");
 			fw.write(space + "public void update(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + "){\n");
 			fw.write(space + space + "dao.update(" + transformaNomeColuna(nomeEntidade) + ");\n");
 			fw.write(space + "}\n");
@@ -711,6 +715,7 @@ public class CriaArquiteturaNova {
 
 			// --
 			fw.write(space + "@Override\n");
+			fw.write(space + "@Transactional(propagation = Propagation.REQUIRED)\n");
 			fw.write(space + "public void delete(long id) {\n");
 			fw.write(space + space + "dao.delete(id);\n");
 			fw.write(space + "}\n\n");
@@ -863,6 +868,7 @@ public class CriaArquiteturaNova {
 			fw.write(space + "\n");
 			fw.write(space + "public " + nomeEntidade + "Bean() {\n");
 			fw.write(space + space + "log.info(\"Bean constructor called.\");\n");
+			fw.write(space + space + "itemFilter = new " + nomeEntidade + "();\n");
 			fw.write(space + space + "limpaPesquisa();\n");
 			fw.write(space + space + instancializaFks.toString());
 			fw.write(space + "}\n");
@@ -977,14 +983,15 @@ public class CriaArquiteturaNova {
 
 		try {
 			FileWriter fw = new FileWriter(fileXhtml);
-
+			
+			fw.write("<?xml version='1.0' encoding='UTF-8' ?>\n");
 			fw.write(
-					"<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>\n");
+					"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n");
 			fw.write("<html xmlns='http://www.w3.org/1999/xhtml'\n");
 			fw.write("xmlns:ui='http://xmlns.jcp.org/jsf/facelets'\n");
 			fw.write("xmlns:h='http://xmlns.jcp.org/jsf/html'\n");
-			fw.write("xmlns:f='http://xmlns.jcp.org/jsf/core'\n");
-			fw.write("xmlns:c='http://xmlns.jcp.org/jsp/jstl/core'\n");
+			fw.write("xmlns:f='http://java.sun.com/jsf/core'\n");
+			fw.write("xmlns:c='http://java.sun.com/jsp/jstl/core'\n");
 			fw.write("xmlns:p='http://primefaces.org/ui'\n");
 			fw.write("xmlns:pe='http://primefaces.org/ui/extensions'\n");
 			fw.write("xmlns:pt='http://xmlns.jcp.org/jsf/passthrough'\n");
@@ -1038,10 +1045,10 @@ public class CriaArquiteturaNova {
 
 					fw.write(space + space + "\t\t<p:selectOneMenu id='componente" + contadorDeComponentes + "'\n");
 					contadorDeComponentes++;
-					fw.write(space + space + "\t\t\tvalue='#{" + nomeXhtml + "Bean." + "item}' label='"
+					fw.write(space + space + "\t\t\tvalue='#{" + nomeXhtml + "Bean." + "itemFilter." + transformaNomeColuna(fk.getPkTableName()) + "}' label='"
 							+ transformaNomeColunaParaTexto(nomeColuna) + "'\n");
-					fw.write(space + space + "\t\t\t converter='#{itemConverter}'>\n");
-					fw.write(space + space + "\t\t\t<f:selectItem itemLabel='Escolha' itemValue='' />\n");
+					fw.write(space + space + "\t\t\t converter='#{" + transformaNomeColuna(fk.getPkTableName()) + "Converter}'>\n");
+					fw.write(space + space + "\t\t\t<f:selectItem itemLabel='Escolha' itemValue='#{null}' />\n");
 					fw.write(space + space + "\t\t\t<f:selectItems value='#{" + nomeXhtml + "Bean.lista"
 							+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "}'\n");
 					fw.write(space + space + "\t\t\tvar='item' itemValue='#{item}' itemLabel='#{item.id}' />\n");
@@ -1070,6 +1077,16 @@ public class CriaArquiteturaNova {
 			fw.write(space + space + "<br style='clear: left;' />\n");
 
 			fw.write(space + space + "\t<p:panel id='viewPanel' header=\"#{i18n['" + nomeXhtml + "']}\">\n");
+			fw.write(space + space + space + "\n");
+			fw.write(space + space + space + "<h:panelGroup layout='block' style='margin: 0 0 0.5em 0;'>\n");
+			fw.write(space + space + space + space + "<p:commandButton id=\"buttonNew\" value=\"#{i18n['button.new']}\"\n");
+			fw.write(space + space + space + space + space + " action=\"#{" + nomeXhtml + "Bean.clearItem}\" icon=\"ui-icon-plus\"\n");
+			fw.write(space + space + space + space + space + " update=\"@form\" resetValues=\"true\">\n");
+			fw.write(space + space + space + space + space + "<f:setPropertyActionListener target=\"#{" + nomeXhtml + "Bean.state}\"\n");
+			fw.write(space + space + space + space + space + space + " value=\"CREATE\" />\n");
+			fw.write(space + space + space + space + "</p:commandButton>\n");
+			fw.write(space + space + space + "</h:panelGroup>\n");
+			fw.write(space + space + space + "\n");
 			// implementar a table result
 			fw.write(space + space + "\t<p:dataTable id='mainDataTable' value='#{" + nomeXhtml + "Bean.items}'");
 			fw.write(space + space + "\tvar='itemView'>\n");
@@ -1095,7 +1112,7 @@ public class CriaArquiteturaNova {
 			fw.write(space + space + space + space + space + space + space + "resetValues='true' immediate='true'>\n");
 			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{"
 					+ nomeXhtml + "Bean.item}'\n");
-			fw.write(space + space + space + space + space + space + space + "value='#{item}' />\n");
+			fw.write(space + space + space + space + space + space + space + "value='#{itemView}' />\n");
 			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{"
 					+ nomeXhtml + "Bean.state}'\n");
 			fw.write(space + space + space + space + space + space + space + "value='UPDATE' />\n");
@@ -1106,7 +1123,7 @@ public class CriaArquiteturaNova {
 			fw.write(space + space + space + space + space + space + space + "immediate='true'>\n");
 			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{"
 					+ nomeXhtml + "Bean.item}'\n");
-			fw.write(space + space + space + space + space + space + space + "value='#{item}' />\n");
+			fw.write(space + space + space + space + space + space + space + "value='#{itemView}' />\n");
 			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{"
 					+ nomeXhtml + "Bean.state}'\n");
 			fw.write(space + space + space + space + space + space + space + "value='DELETE' />\n");
@@ -1161,10 +1178,10 @@ public class CriaArquiteturaNova {
 
 					fw.write(space + space + "\t\t<p:selectOneMenu id='componente" + contadorDeComponentes + "'\n");
 					contadorDeComponentes++;
-					fw.write(space + space + "\t\t\tvalue='#{" + nomeXhtml + "Bean.item}' label='"
+					fw.write(space + space + "\t\t\tvalue='#{" + nomeXhtml + "Bean.item." + transformaNomeColuna(fk.getPkTableName()) + "}' label='"
 							+ transformaNomeColunaParaTexto(nomeColuna) + "'\n");
-					fw.write(space + space + "\t\t\t converter='#{itemConverter}'>\n");
-					fw.write(space + space + "\t\t\t<f:selectItem itemLabel='Escolha' itemValue='' />\n");
+					fw.write(space + space + "\t\t\t converter='#{" + transformaNomeColuna(fk.getPkTableName()) + "Converter}'>\n");
+					fw.write(space + space + "\t\t\t<f:selectItem itemLabel='Escolha' itemValue='#{null}' />\n");
 					fw.write(space + space + "\t\t\t<f:selectItems value='#{" + nomeXhtml + "Bean.lista"
 							+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "}'\n");
 					fw.write(space + space + "\t\t\tvar='item' itemValue='#{item}' itemLabel='#{item.id}' />\n");
@@ -1229,7 +1246,7 @@ public class CriaArquiteturaNova {
 
 			// ------ Inicio de Bloco de remoção do registro
 			fw.write(space + space + "<h:panelGroup id='removePanelGroup' layout='block'\n");
-			fw.write(space + space + "rendered=\"#{" + nomeXhtml + "Bean.state eq 'UPDATE'}\"\n");
+			fw.write(space + space + "rendered=\"#{" + nomeXhtml + "Bean.state eq 'DELETE'}\"\n");
 			fw.write(space + space + "styleClass='ui-grid ui-grid-responsive'>\n");
 			fw.write(space + space + "<div class='ui-grid-row'>\n");
 			fw.write(space + space + "<div class='ui-grid-col-12'>\n");
@@ -1286,7 +1303,7 @@ public class CriaArquiteturaNova {
 			fw.write("import java.io.Serializable;\n");
 			fw.write("\n");
 			fw.write("import javax.faces.bean.ManagedBean;\n");
-			fw.write("import javax.faces.bean.RequestScoped;\n");
+			fw.write("import javax.faces.bean.ViewScoped;\n");
 			fw.write("import javax.faces.component.UIComponent;\n");
 			fw.write("import javax.faces.context.FacesContext;\n");
 			fw.write("import javax.faces.convert.Converter;\n");
@@ -1298,7 +1315,7 @@ public class CriaArquiteturaNova {
 			fw.write("import " + nomePacote + ".model." + nomeEntidade + ";\n");
 			fw.write("\n");
 			fw.write("@ManagedBean\n");
-			fw.write("@RequestScoped\n");
+			fw.write("@ViewScoped\n");
 			fw.write("@Named\n");
 			fw.write("public class " + nomeEntidade + "Converter implements Converter, Serializable{\n");
 			fw.write(space + "\n");
@@ -1310,11 +1327,11 @@ public class CriaArquiteturaNova {
 			fw.write(space + "@Override\n");
 			fw.write(
 					space + "public Object getAsObject(FacesContext context, UIComponent component, String value) {\n");
-			fw.write(space + space + "if (value.contains(\"--\")){\n");
+			fw.write(space + space + "if (value.contains(\"--\")||value.contains(\"Escolha\")){\n");
 			fw.write(space + space + space + "return null;\n");
 			fw.write(space + space + "}\n");
-			fw.write(space + space + "long id = Long.parseLong(value);\n");
 			fw.write(space + space + "try {\n");
+			fw.write(space + space + space + "long id = Long.parseLong(value);\n");
 			fw.write(space + space + space + "Object object = service.read(id);\n");
 			fw.write(space + space + space + "System.out.println(\"Convertendo " + nomeEntidade + "\");\n");
 			fw.write(space + space + space + "return object;\n");
