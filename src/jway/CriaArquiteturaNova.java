@@ -62,7 +62,6 @@ public class CriaArquiteturaNova {
 
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -113,13 +112,11 @@ public class CriaArquiteturaNova {
 			System.out.println(" ----- Processo encerrado ----");
 
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
 	private void criaAmbiente() {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -158,7 +155,6 @@ public class CriaArquiteturaNova {
 				mapCamposFk.put(fkColumnName.toUpperCase(), campoFk);
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -319,14 +315,71 @@ public class CriaArquiteturaNova {
 				}
 
 			}
-
+			
+			String nomeColuna;
+			
+			// início hashcode:
+			fw.write("\n");
+			fw.write(space + "@Override\n");
+			
+			fw.write(space + "public int hashCode() {\n");
+			fw.write(space + space + "final int prime = 31;\n");
+			fw.write(space + space + "int result = 1;\n");
+			for (int i = 0; i < numColumns; i++) {
+				
+				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1).toUpperCase())) {
+					CampoFk fk = mapCamposFk.get(rsmd.getColumnName(i + 1).toUpperCase());
+					nomeColuna = transformaNomeColuna(fk.getPkTableName());
+				} else {
+					nomeColuna = transformaNomeColuna(rsmd.getColumnName(i + 1));
+				}
+				fw.write(space + space + "result = prime * result + ((" + nomeColuna + 
+						" == null) ? 0 : " + nomeColuna + ".hashCode());\n");
+			}
+			fw.write(space + space + "return result;\n");
+			fw.write(space + "}\n");
+			// --- final hashcode
+			
+			// início equals:
+			fw.write("\n");
+			fw.write(space + "@Override\n");
+			fw.write(space + "public boolean equals(Object obj) {\n");
+			fw.write("\n");
+			fw.write(space + space + "if (this == obj)\n");
+			fw.write(space + space + space + "return true;\n");
+			fw.write(space + space + "if (obj == null)\n");
+			fw.write(space + space + space + "return false;\n");
+			fw.write(space + space + "if (getClass() != obj.getClass())\n");
+			fw.write(space + space + space + "return false;\n");
+			fw.write("\n");
+			fw.write(space + space + nomeEntidade + " other = (" + nomeEntidade + ") obj;\n");
+			fw.write("\n");
+			for (int i = 0; i < numColumns; i++) {
+				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1).toUpperCase())) {
+					CampoFk fk = mapCamposFk.get(rsmd.getColumnName(i + 1).toUpperCase());
+					nomeColuna = transformaNomeColuna(fk.getPkTableName());
+				} else {
+					nomeColuna = transformaNomeColuna(rsmd.getColumnName(i + 1));
+				}
+				fw.write(space + space + "if (" + nomeColuna + " == null){\n");
+				fw.write(space + space + space + "if (other." + nomeColuna +  "!= null)\n");
+				fw.write(space + space + space + space + "return false;\n");
+				fw.write(space + space + "} else if (!" + nomeColuna + 
+						".equals(other." + nomeColuna + ")){\n");
+				fw.write(space + space + space + "return false;\n");
+				fw.write(space + space + "}\n");
+				fw.write("\n");
+			}
+			fw.write(space + space + "return true;\n");
+			fw.write(space + "}\n");
+			// --- final equals
+			
 			fw.write("}"); // final da classe
 
 			fw.flush();
 			fw.close();
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -858,7 +911,6 @@ public class CriaArquiteturaNova {
 					}
 				}
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
