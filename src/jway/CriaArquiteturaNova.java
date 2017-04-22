@@ -10,6 +10,9 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,6 +34,7 @@ public class CriaArquiteturaNova {
 	private String converterPath;
 	private DatabaseMetaData dbmd;
 	private boolean isPostgresql = false;
+	private boolean isSybase = true;
 	private String nomeBanco = "bloqueio";
 	private String user = "postgres";
 	private String password = "postgres";
@@ -53,9 +57,16 @@ public class CriaArquiteturaNova {
 				// recuperar a classe DatabaseMetadaData a partir da conexao
 				// criada
 				dbmd = conn.getMetaData();
+			} else if (isSybase) {
+				DriverManager.registerDriver(new com.sybase.jdbc3.jdbc.SybDriver());
+				conn = DriverManager.getConnection("jdbc:sybase:Tds:localhost:2638?ServiceName=integra", "externo", "sql");
+
+				// recuperar a classe DatabaseMetadaData a partir da conexao
+				// criada
+				dbmd = conn.getMetaData();
 			} else {
 				DriverManager.registerDriver(new com.mysql.jdbc.Driver());
-				conn = DriverManager.getConnection("jdbc:mysql://107.161.176.58:3306/fitapp", "fitapp", "abc123#");
+				conn = DriverManager.getConnection("jdbc:mysql://107.161.176.58:3306/lanchar_v2", "lanchar", "T33n#12014");
 				// recuperar a classe DatabaseMetadaData a partir da conexao
 				// criada
 				dbmd = conn.getMetaData();
@@ -67,7 +78,14 @@ public class CriaArquiteturaNova {
 
 	}
 
+	public static String getDateHourMinutes(Date data) {
+		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+
+		return formatter.format(data);
+	}
+
 	private void processa() {
+		System.out.println("Início: " + getDateHourMinutes(new Date()));
 		try {
 			nomePacote = "br.com.jway"; // isto vai ser informado na tela
 			montaNomePastas();
@@ -85,32 +103,45 @@ public class CriaArquiteturaNova {
 			System.out.println("Suporta Select for Update? = " + dbmd.supportsSelectForUpdate());
 			System.out.println("Suporta Transacoes? = "
 
-					+ dbmd.supportsTransactions());
+			+ dbmd.supportsTransactions());
 
 			// retornar todos os schemas(usuarios) do Banco de Dados
 			ResultSet r2 = dbmd.getSchemas();
+
 			while (r2.next()) {
 				System.out.println("SCHEMA DO BD = " + r2.getString(1));
 			}
 			StringBuilder internacionaliza = new StringBuilder();
 			while (listaTabelas.next()) {
-				String nomeTabela = listaTabelas.getString("TABLE_NAME");
-				internacionaliza.append(
-						transformaNomeColuna(nomeTabela) + " = " + transformaNomeColunaParaTexto(nomeTabela) + "\n");
-				armazenaFks(nomeTabela);
-				criaEntidade(nomeTabela);
-				criaDao(nomeTabela);
-				criaService(nomeTabela);
-				criaManagedBean(nomeTabela);
-				criaViewJsf(nomeTabela);
-				criaConverter(nomeTabela);
-
+				try {
+					String nomeTabela = listaTabelas.getString("TABLE_NAME");
+					String schema = listaTabelas.getString("TABLE_SCHEM");
+					if (schema == null || !schema.equals("bethadba")){
+						continue;
+					}
+					internacionaliza.append(transformaNomeColuna(nomeTabela) + " = " + transformaNomeColunaParaTexto(nomeTabela) + "\n");
+					armazenaFks(nomeTabela);
+					
+					try {
+						criaEntidade(nomeTabela, schema);
+					} catch (Exception e2) {
+						e2.printStackTrace();
+						System.out.println("Erro: " + nomeTabela);
+					}
+					criaDao(nomeTabela);
+					criaService(nomeTabela);
+					// criaManagedBean(nomeTabela);
+					// criaViewJsf(nomeTabela);
+					// criaConverter(nomeTabela);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 			System.out.println("Internacionalização: \n");
 			System.out.println(internacionaliza.toString());
 			criaAmbiente();
 			System.out.println(" ----- Processo encerrado ----");
-
+			System.out.println("Fim: " + getDateHourMinutes(new Date()));
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -184,12 +215,12 @@ public class CriaArquiteturaNova {
 		criarPasta(converterPath);
 	}
 
-	private void criaEntidade(String nomeTabela) throws SQLException {
+	private void criaEntidade(String nomeTabela, String schema) throws SQLException {
 
 		Statement stmt = conn.createStatement();
 		// Tabela a ser analisada
 
-		ResultSet rset = stmt.executeQuery("SELECT * from " + nomeTabela);
+		ResultSet rset = stmt.executeQuery("SELECT TOP 1 * from " + schema + "." + nomeTabela);
 
 		ResultSetMetaData rsmd = rset.getMetaData();
 
@@ -258,15 +289,18 @@ public class CriaArquiteturaNova {
 					fw.write(space + "@JoinColumn(name = \"" + fk.getFkColumnName() + "\")");
 					fw.write("\n");
 
-					fw.write(space + "private " + transformaNomeEntidade(fk.getPkTableName()) + " "
-							+ transformaNomeColuna(fk.getPkTableName().toLowerCase()) + ";\n");
+					fw.write(space + "private " + transformaNomeEntidade(fk.getPkTableName()) + " " + transformaNomeColuna(fk.getPkTableName().toLowerCase())
+							+ ";\n");
 
 				} else {
-					fw.write(space + "@Column(name=\"" + rsmd.getColumnName(i + 1) + "\")\n");
-					fw.write(space + "private "
-							+ transformaTipo(rsmd.getColumnTypeName(i + 1), rsmd.getScale(i + 1),
-									rsmd.getColumnName(i + 1).toLowerCase().contains("id"))
-							+ " " + transformaNomeColuna(rsmd.getColumnName(i + 1)) + ";\n");
+					try {
+						fw.write(space + "@Column(name=\"" + rsmd.getColumnName(i + 1) + "\")\n");
+						fw.write(space
+								+ "private "
+								+ transformaTipo(rsmd.getColumnTypeName(i + 1), rsmd.getScale(i + 1), rsmd.getColumnName(i + 1).toLowerCase().contains("id")) + " " + transformaNomeColuna(rsmd.getColumnName(i + 1)) + ";\n");
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 
 			}
@@ -282,64 +316,61 @@ public class CriaArquiteturaNova {
 
 					fw.write("\n");
 
-					fw.write(space + "public  " + transformaNomeEntidade(fk.getPkTableName()) + " " + " " + "get"
-							+ transformaNomeEntidade(fk.getPkTableName()) + "() { \n");
+					fw.write(space + "public  " + transformaNomeEntidade(fk.getPkTableName()) + " " + " " + "get" + transformaNomeEntidade(fk.getPkTableName())
+							+ "() { \n");
 					fw.write(space + space + "return " + transformaNomeColuna(fk.getPkTableName()) + ";\n");
 					fw.write(space + "}\n");
 
 					fw.write(space + "public void " + " " + "set" + transformaNomeEntidade(fk.getPkTableName())
 
-							+ "(" + transformaNomeEntidade(fk.getPkTableName()) + " "
-							+ transformaNomeColuna(fk.getPkTableName()) + ") { \n");
-					fw.write(space + space + "this." + transformaNomeColuna(fk.getPkTableName()) + " = "
-							+ transformaNomeColuna(fk.getPkTableName()) + ";\n");
+					+ "(" + transformaNomeEntidade(fk.getPkTableName()) + " " + transformaNomeColuna(fk.getPkTableName()) + ") { \n");
+					fw.write(space + space + "this." + transformaNomeColuna(fk.getPkTableName()) + " = " + transformaNomeColuna(fk.getPkTableName()) + ";\n");
 					fw.write(space + "}\n");
 
 				} else {
-					fw.write(space + "public "
-							+ transformaTipo(rsmd.getColumnTypeName(i + 1), rsmd.getScale(i + 1),
-									rsmd.getColumnName(i + 1).toLowerCase().contains("id"))
-							+ " " + "get" + transformaNomeColunaPrimeiroCaracterMaiusculo(rsmd.getColumnName(i + 1))
-							+ "() { \n");
+					fw.write(space
+							+ "public "
+							+ transformaTipo(rsmd.getColumnTypeName(i + 1), rsmd.getScale(i + 1), rsmd.getColumnName(i + 1).toLowerCase().contains("id")) + " " + "get" + transformaNomeColunaPrimeiroCaracterMaiusculo(rsmd.getColumnName(i + 1)) + "() { \n");
 					fw.write(space + space + "return " + transformaNomeColuna(rsmd.getColumnName(i + 1)) + ";\n");
 					fw.write(space + "}\n");
 
-					fw.write(space + "public void " + " " + "set"
-							+ transformaNomeColunaPrimeiroCaracterMaiusculo(rsmd.getColumnName(i + 1)) + "("
-							+ transformaTipo(rsmd.getColumnTypeName(i + 1), rsmd.getScale(i + 1),
-									rsmd.getColumnName(i + 1).toLowerCase().contains("id"))
-							+ " " + transformaNomeColuna(rsmd.getColumnName(i + 1)) + ") { \n");
-					fw.write(space + space + "this." + transformaNomeColuna(rsmd.getColumnName(i + 1)) + " = "
-							+ transformaNomeColuna(rsmd.getColumnName(i + 1)) + ";\n");
+					fw.write(space
+							+ "public void "
+							+ " "
+							+ "set"
+							+ transformaNomeColunaPrimeiroCaracterMaiusculo(rsmd.getColumnName(i + 1))
+							+ "("
+							+ transformaTipo(rsmd.getColumnTypeName(i + 1), rsmd.getScale(i + 1), rsmd.getColumnName(i + 1).toLowerCase().contains("id")) + " " + transformaNomeColuna(rsmd.getColumnName(i + 1)) + ") { \n");
+					fw.write(space + space + "this." + transformaNomeColuna(rsmd.getColumnName(i + 1)) + " = " + transformaNomeColuna(rsmd.getColumnName(i + 1))
+							+ ";\n");
 					fw.write(space + "}\n");
 				}
 
 			}
-			
+
 			String nomeColuna;
-			
+
 			// início hashcode:
 			fw.write("\n");
 			fw.write(space + "@Override\n");
-			
+
 			fw.write(space + "public int hashCode() {\n");
 			fw.write(space + space + "final int prime = 31;\n");
 			fw.write(space + space + "int result = 1;\n");
 			for (int i = 0; i < numColumns; i++) {
-				
+
 				if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1).toUpperCase())) {
 					CampoFk fk = mapCamposFk.get(rsmd.getColumnName(i + 1).toUpperCase());
 					nomeColuna = transformaNomeColuna(fk.getPkTableName());
 				} else {
 					nomeColuna = transformaNomeColuna(rsmd.getColumnName(i + 1));
 				}
-				fw.write(space + space + "result = prime * result + ((" + nomeColuna + 
-						" == null) ? 0 : " + nomeColuna + ".hashCode());\n");
+				fw.write(space + space + "result = prime * result + ((" + nomeColuna + " == null) ? 0 : " + nomeColuna + ".hashCode());\n");
 			}
 			fw.write(space + space + "return result;\n");
 			fw.write(space + "}\n");
 			// --- final hashcode
-			
+
 			// início equals:
 			fw.write("\n");
 			fw.write(space + "@Override\n");
@@ -362,10 +393,9 @@ public class CriaArquiteturaNova {
 					nomeColuna = transformaNomeColuna(rsmd.getColumnName(i + 1));
 				}
 				fw.write(space + space + "if (" + nomeColuna + " == null){\n");
-				fw.write(space + space + space + "if (other." + nomeColuna +  "!= null)\n");
+				fw.write(space + space + space + "if (other." + nomeColuna + "!= null)\n");
 				fw.write(space + space + space + space + "return false;\n");
-				fw.write(space + space + "} else if (!" + nomeColuna + 
-						".equals(other." + nomeColuna + ")){\n");
+				fw.write(space + space + "} else if (!" + nomeColuna + ".equals(other." + nomeColuna + ")){\n");
 				fw.write(space + space + space + "return false;\n");
 				fw.write(space + space + "}\n");
 				fw.write("\n");
@@ -373,7 +403,7 @@ public class CriaArquiteturaNova {
 			fw.write(space + space + "return true;\n");
 			fw.write(space + "}\n");
 			// --- final equals
-			
+
 			fw.write("}"); // final da classe
 
 			fw.flush();
@@ -392,7 +422,7 @@ public class CriaArquiteturaNova {
 
 		aux = new String();
 
-		for (int i = 0; i < pedacos.length; i++) {
+		for (int i = 1; i < pedacos.length; i++) {
 			aux = aux + pedacos[i].substring(0, 1).toUpperCase() + pedacos[i].substring(1);
 		}
 
@@ -428,21 +458,29 @@ public class CriaArquiteturaNova {
 	}
 
 	private static String transformaNomeColunaParaTexto(String columnName) {
+		try{
 
-		String aux = columnName.toLowerCase();
-		String[] pedacos = aux.split("_");
+			String aux = columnName.toLowerCase();
+			String[] pedacos = aux.split("_");
 
-		aux = "";
+			aux = "";
 
-		for (int i = 0; i < pedacos.length; i++) {
-			aux = aux + pedacos[i].substring(0, 1).toUpperCase() + pedacos[i].substring(1) + " ";
+			for (int i = 0; i < pedacos.length; i++) {
+				aux = aux + pedacos[i].substring(0, 1).toUpperCase() + pedacos[i].substring(1) + " ";
+			}
+			return aux.trim();
 		}
-		return aux.trim();
+		catch(Exception e){
+			return columnName;
+		}
+		
 
 	}
 
 	private static String transformaTipo(String tipo, int decimais, boolean campoId) {
-		tipo = tipo.toLowerCase();
+		if (tipo == null) {
+			tipo = "date";
+		}
 
 		// para o postgresql
 
@@ -532,16 +570,14 @@ public class CriaArquiteturaNova {
 
 			fw.write(space + "void create(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + ");\n\n");
 
-			fw.write(space + nomeEntidade + " update(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade)
-					+ ");\n\n");
+			fw.write(space + nomeEntidade + " update(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + ");\n\n");
 
 			fw.write(space + "void delete(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + ");\n\n");
 
 			fw.write(space + "void delete(long id);\n\n");
 
 			// --
-			fw.write(space + "public List<" + nomeEntidade + "> pesquisa(" + nomeEntidade + " "
-					+ transformaNomeColuna(nomeEntidade) + ");\n\n");
+			fw.write(space + "public List<" + nomeEntidade + "> pesquisa(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + ");\n\n");
 
 			fw.write("}"); // final da interface
 
@@ -593,11 +629,9 @@ public class CriaArquiteturaNova {
 			fw.write(space + " public List<" + nomeEntidade + "> list() {\n");
 			fw.write(space + space + "StringBuilder jpql = new StringBuilder()\n"); //
 			fw.write(space + space + space + ".append(\"SELECT x \") \n");
-			fw.write(
-					space + space + space + ".append(\"FROM \" + " + nomeEntidade + ".class.getName() + \" x \") //\n");
+			fw.write(space + space + space + ".append(\"FROM \" + " + nomeEntidade + ".class.getName() + \" x \") //\n");
 			fw.write(space + space + space + ".append(\"ORDER BY x.id ASC \");\n");
-			fw.write(space + space + "return em.createQuery(jpql.toString(), " + nomeEntidade
-					+ ".class).getResultList();\n");
+			fw.write(space + space + "return em.createQuery(jpql.toString(), " + nomeEntidade + ".class).getResultList();\n");
 			fw.write(space + "}\n");
 			fw.write(space + "\n");
 			fw.write(space + "@Override\n");
@@ -613,8 +647,7 @@ public class CriaArquiteturaNova {
 			fw.write(space + "\n");
 			fw.write(space + "@Override\n");
 			fw.write(space + "@Transactional(propagation = Propagation.MANDATORY)\n");
-			fw.write(space + "public " + nomeEntidade + " update(" + nomeEntidade + " "
-					+ transformaNomeColuna(nomeEntidade) + ") {\n");
+			fw.write(space + "public " + nomeEntidade + " update(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + ") {\n");
 			fw.write(space + space + "return em.merge(" + transformaNomeColuna(nomeEntidade) + ");\n");
 			fw.write(space + "}\n");
 			fw.write(space + "\n");
@@ -627,17 +660,15 @@ public class CriaArquiteturaNova {
 			fw.write(space + "@Override\n");
 			fw.write(space + "@Transactional(propagation = Propagation.MANDATORY)\n");
 			fw.write(space + "public void delete(long id) {\n");
-			fw.write(space + space + "" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade)
-					+ " = em.getReference(" + nomeEntidade + ".class, id);\n");
+			fw.write(space + space + "" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + " = em.getReference(" + nomeEntidade + ".class, id);\n");
 			fw.write(space + space + "delete(" + transformaNomeColuna(nomeEntidade) + ");\n");
 			fw.write(space + "}\n");
 
 			// --
 			fw.write(space + "@Override\n");
-			fw.write(space + "public List<" + nomeEntidade + "> pesquisa(" + nomeEntidade + " "
-					+ transformaNomeColuna(nomeEntidade) + "){\n");
+			fw.write(space + "public List<" + nomeEntidade + "> pesquisa(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + "){\n");
 			// implementar a consulta sql atendendo ao filtro
-			fw.write(space + space+ "return null;");
+			fw.write(space + space + "return null;");
 			fw.write(space + "}\n");
 
 			fw.write(space + "\n");
@@ -678,12 +709,9 @@ public class CriaArquiteturaNova {
 
 			fw.write("\n");
 
-			fw.write(
-					space + "public void create(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + ");\n\n");
-			fw.write(
-					space + "public void delete(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + ");\n\n");
-			fw.write(
-					space + "public void update(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + ");\n\n");
+			fw.write(space + "public void create(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + ");\n\n");
+			fw.write(space + "public void delete(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + ");\n\n");
+			fw.write(space + "public void update(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + ");\n\n");
 			fw.write(space + "public List<" + nomeEntidade + "> list();\n\n");
 
 			fw.write(space + "public void delete(long id);\n\n");
@@ -691,9 +719,7 @@ public class CriaArquiteturaNova {
 			fw.write(space + "public " + nomeEntidade + " read(long id);\n\n");
 
 			// --
-			fw.write(space + "public List<" + nomeEntidade + "> pesquisa(" + nomeEntidade + " "
-					+ transformaNomeColuna(nomeEntidade) + ");\n");
-
+			fw.write(space + "public List<" + nomeEntidade + "> pesquisa(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + ");\n");
 
 			fw.write("}"); // final da interface
 
@@ -782,8 +808,7 @@ public class CriaArquiteturaNova {
 
 			// --
 			fw.write(space + "@Override\n");
-			fw.write(space + "public List<" + nomeEntidade + "> pesquisa(" + nomeEntidade + " "
-					+ transformaNomeColuna(nomeEntidade) + "){\n");
+			fw.write(space + "public List<" + nomeEntidade + "> pesquisa(" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + "){\n");
 			fw.write(space + space + "return dao.pesquisa(" + transformaNomeColuna(nomeEntidade) + ");\n ");
 
 			fw.write(space + "}\n");
@@ -813,12 +838,11 @@ public class CriaArquiteturaNova {
 			fw.write("package " + nomePacote + ".bean; \n");
 
 			fw.write("\n");
-			fw.write("import java.io.Serializable;\n" + "import java.util.List;\n"
-					+ "import javax.annotation.PostConstruct;\n" + "import javax.annotation.PreDestroy;\n");
+			fw.write("import java.io.Serializable;\n" + "import java.util.List;\n" + "import javax.annotation.PostConstruct;\n"
+					+ "import javax.annotation.PreDestroy;\n");
 
-			fw.write("import javax.faces.bean.ManagedBean;\n" + "import javax.faces.bean.ViewScoped;\n"
-					+ "import javax.inject.Inject;\n" + "import org.apache.commons.logging.Log;\n"
-					+ "import org.apache.commons.logging.LogFactory;\n"
+			fw.write("import javax.faces.bean.ManagedBean;\n" + "import javax.faces.bean.ViewScoped;\n" + "import javax.inject.Inject;\n"
+					+ "import org.apache.commons.logging.Log;\n" + "import org.apache.commons.logging.LogFactory;\n"
 					+ "import org.springframework.beans.factory.annotation.Autowire;\n"
 					+ "import org.springframework.web.context.support.SpringBeanAutowiringSupport;\n");
 
@@ -830,8 +854,7 @@ public class CriaArquiteturaNova {
 			fw.write("@ManagedBean\n");
 			fw.write("@ViewScoped\n");
 
-			fw.write("public  class " + nomeEntidade + "Bean"
-					+ " extends SpringBeanAutowiringSupport implements Serializable " + "{\n");
+			fw.write("public  class " + nomeEntidade + "Bean" + " extends SpringBeanAutowiringSupport implements Serializable " + "{\n");
 			fw.write("\n");
 
 			fw.write(space + "private static final long serialVersionUID = 1L;\n");
@@ -849,7 +872,7 @@ public class CriaArquiteturaNova {
 			Statement stmt;
 			try {
 				stmt = conn.createStatement();
-				ResultSet rset = stmt.executeQuery("SELECT * from " + nomeTabela);
+				ResultSet rset = stmt.executeQuery("SELECT * from bethadba." + nomeTabela);
 
 				ResultSetMetaData rsmd = rset.getMetaData();
 
@@ -863,49 +886,39 @@ public class CriaArquiteturaNova {
 					 */
 					if (mapCamposFk.containsKey(rsmd.getColumnName(i + 1).toUpperCase())) {
 						CampoFk fk = mapCamposFk.get(rsmd.getColumnName(i + 1).toUpperCase());
-						fw.write(space + "private List<"
-								+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "> lista"
+						fw.write(space + "private List<" + transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "> lista"
 								+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + ";\n");
 						fw.write("\n");
-						fw.write(space + "private " + transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName())
-								+ " " + transformaNomeEntidade(fk.getPkTableName()) + ";\n");
+						fw.write(space + "private " + transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + " "
+								+ transformaNomeEntidade(fk.getPkTableName()) + ";\n");
 						fw.write("\n");
 						fw.write(space + "@Inject\n");
-						fw.write(space + "private " + transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName())
-								+ "Service " + transformaNomeEntidade(fk.getPkTableName()) + "Service;\n");
-						instancializaFks
-								.append("lista" + transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName())
-										+ " = " + transformaNomeEntidade(fk.getPkTableName()) + "Service.list();\n");
-						fkGetandSet.append(space + "public List<"
-								+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "> getLista"
+						fw.write(space + "private " + transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "Service "
+								+ transformaNomeEntidade(fk.getPkTableName()) + "Service;\n");
+						instancializaFks.append("lista" + transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + " = "
+								+ transformaNomeEntidade(fk.getPkTableName()) + "Service.list();\n");
+						fkGetandSet.append(space + "public List<" + transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "> getLista"
 								+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "(){\n");
-						fkGetandSet.append(space + space + "return lista"
-								+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + ";\n");
+						fkGetandSet.append(space + space + "return lista" + transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + ";\n");
 						fkGetandSet.append(space + "}\n");
 						fkGetandSet.append(space + "\n");
-						fkGetandSet.append(space + "public void setLista"
-								+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "(List<"
+						fkGetandSet.append(space + "public void setLista" + transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "(List<"
 								+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "> lista"
 								+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "){\n");
-						fkGetandSet.append(space + space + "this.lista"
-								+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + " = lista"
+						fkGetandSet.append(space + space + "this.lista" + transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + " = lista"
 								+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + ";\n");
 						fkGetandSet.append(space + "}\n");
 						fkGetandSet.append(space + "\n");
 						fkGetandSet.append(space + "\n");
-						fkGetandSet.append(space + "public "
-								+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + " get"
+						fkGetandSet.append(space + "public " + transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + " get"
 								+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "(){\n");
-						fkGetandSet.append(space + space + "return "
-								+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + ";\n");
+						fkGetandSet.append(space + space + "return " + transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + ";\n");
 						fkGetandSet.append(space + "}\n");
 						fkGetandSet.append(space + "\n");
-						fkGetandSet.append(space + "public void set"
-								+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "("
+						fkGetandSet.append(space + "public void set" + transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "("
 								+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + " "
 								+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + "){\n");
-						fkGetandSet.append(space + space + "this."
-								+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + " = "
+						fkGetandSet.append(space + space + "this." + transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + " = "
 								+ transformaNomeColunaPrimeiroCaracterMaiusculo(fk.getPkTableName()) + ";\n");
 						fkGetandSet.append(space + "}\n");
 					}
@@ -1035,10 +1048,9 @@ public class CriaArquiteturaNova {
 
 		try {
 			FileWriter fw = new FileWriter(fileXhtml);
-			
+
 			fw.write("<?xml version='1.0' encoding='UTF-8' ?>\n");
-			fw.write(
-					"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n");
+			fw.write("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n");
 			fw.write("<html xmlns='http://www.w3.org/1999/xhtml'\n");
 			fw.write("xmlns:ui='http://xmlns.jcp.org/jsf/facelets'\n");
 			fw.write("xmlns:h='http://xmlns.jcp.org/jsf/html'\n");
@@ -1071,7 +1083,7 @@ public class CriaArquiteturaNova {
 			// implementar a pesquisa usando o conceito de entidade filter
 			Statement stmt = conn.createStatement();
 
-			ResultSet rset = stmt.executeQuery("SELECT * from " + nomeTabela);
+			ResultSet rset = stmt.executeQuery("SELECT * from " + nomeTabela + " ");
 
 			ResultSetMetaData rsmd = rset.getMetaData();
 
@@ -1085,8 +1097,7 @@ public class CriaArquiteturaNova {
 				fw.write(space + space + "\n");
 
 				// o label
-				fw.write(space + space + "\t\t<h:outputText value='"
-						+ transformaNomeColunaParaTexto(rsmd.getColumnName(i + 1).toUpperCase()) + ":' />\n");
+				fw.write(space + space + "\t\t<h:outputText value='" + transformaNomeColunaParaTexto(rsmd.getColumnName(i + 1).toUpperCase()) + ":' />\n");
 				String nomeColuna = rsmd.getColumnName(i + 1);
 
 				/**
@@ -1110,8 +1121,7 @@ public class CriaArquiteturaNova {
 
 					fw.write(space + space + "\t\t<p:inputText id='componente" + contadorDeComponentes + "'\n");
 					contadorDeComponentes++;
-					fw.write(space + space + "\t\t\tvalue='#{" + nomeXhtml + "Bean.itemFilter."
-							+ transformaNomeColuna(nomeColuna) + "}'>\n ");
+					fw.write(space + space + "\t\t\tvalue='#{" + nomeXhtml + "Bean.itemFilter." + transformaNomeColuna(nomeColuna) + "}'>\n ");
 					fw.write(space + space + "\t\t</p:inputText>\n");
 
 				}
@@ -1147,11 +1157,9 @@ public class CriaArquiteturaNova {
 					continue; // na table, implementar mais tarde o modo de
 								// mostrar as fks
 				}
-				fw.write(space + space + "\t\t<p:column headerText='"
-						+ transformaNomeColunaParaTexto(rsmd.getColumnName(i + 1))
+				fw.write(space + space + "\t\t<p:column headerText='" + transformaNomeColunaParaTexto(rsmd.getColumnName(i + 1))
 						+ "' width='30' style='text-align: center;'>\n");
-				fw.write(space + space + "\t\t\t\t<h:outputText value='#{itemView."
-						+ transformaNomeColuna(rsmd.getColumnName(i + 1)) + "}' />\n");
+				fw.write(space + space + "\t\t\t\t<h:outputText value='#{itemView." + transformaNomeColuna(rsmd.getColumnName(i + 1)) + "}' />\n");
 				fw.write(space + space + "\t\t</p:column>\n");
 				fw.write(space + space + "\n");
 
@@ -1159,25 +1167,19 @@ public class CriaArquiteturaNova {
 			fw.write(space + space + space + space + "<p:column headerText=\"#{i18n['operations']}\" width='70'\n");
 			fw.write(space + space + space + space + space + space + "style='text-align: center;'>\n");
 			fw.write(space + space + space + space + space + space + "<p:commandButton id='buttonOperationEdit'\n");
-			fw.write(space + space + space + space + space + space + space
-					+ "icon='ui-icon-pencil' process='@this' update='@form'\n");
+			fw.write(space + space + space + space + space + space + space + "icon='ui-icon-pencil' process='@this' update='@form'\n");
 			fw.write(space + space + space + space + space + space + space + "resetValues='true' immediate='true'>\n");
-			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{"
-					+ nomeXhtml + "Bean.item}'\n");
+			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{" + nomeXhtml + "Bean.item}'\n");
 			fw.write(space + space + space + space + space + space + space + "value='#{itemView}' />\n");
-			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{"
-					+ nomeXhtml + "Bean.state}'\n");
+			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{" + nomeXhtml + "Bean.state}'\n");
 			fw.write(space + space + space + space + space + space + space + "value='UPDATE' />\n");
 			fw.write(space + space + space + space + space + space + "</p:commandButton>\n");
 			fw.write(space + space + space + space + space + space + "<p:commandButton id='buttonOperationRemove'\n");
-			fw.write(space + space + space + space + space + space + space
-					+ "icon='ui-icon-trash' process='@this' update='@form'\n");
+			fw.write(space + space + space + space + space + space + space + "icon='ui-icon-trash' process='@this' update='@form'\n");
 			fw.write(space + space + space + space + space + space + space + "immediate='true'>\n");
-			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{"
-					+ nomeXhtml + "Bean.item}'\n");
+			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{" + nomeXhtml + "Bean.item}'\n");
 			fw.write(space + space + space + space + space + space + space + "value='#{itemView}' />\n");
-			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{"
-					+ nomeXhtml + "Bean.state}'\n");
+			fw.write(space + space + space + space + space + space + space + "<f:setPropertyActionListener target='#{" + nomeXhtml + "Bean.state}'\n");
 			fw.write(space + space + space + space + space + space + space + "value='DELETE' />\n");
 			fw.write(space + space + space + space + space + space + "</p:commandButton>\n");
 			fw.write(space + space + space + space + "</p:column>\n");
@@ -1193,8 +1195,7 @@ public class CriaArquiteturaNova {
 			// ------- Inicio Bloco de edição do registro
 			// -------------------------
 			fw.write(space + space + "<h:panelGroup id='editPanelGroup' layout='block'\n");
-			fw.write(space + space + "rendered=\"#{" + nomeXhtml + "Bean.state eq 'CREATE' or " + nomeXhtml
-					+ "Bean.state eq 'UPDATE'}\"\n");
+			fw.write(space + space + "rendered=\"#{" + nomeXhtml + "Bean.state eq 'CREATE' or " + nomeXhtml + "Bean.state eq 'UPDATE'}\"\n");
 			fw.write(space + space + "styleClass='ui-grid ui-grid-responsive'>\n");
 			fw.write(space + space + "<div class='ui-grid-row'>\n");
 			fw.write(space + space + "<div class='ui-grid-col-12'>\n");
@@ -1218,8 +1219,7 @@ public class CriaArquiteturaNova {
 				fw.write(space + space + "\n");
 
 				// o label
-				fw.write(space + space + "\t\t<h:outputText value='"
-						+ transformaNomeColunaParaTexto(rsmd.getColumnName(i + 1)) + ":' />\n");
+				fw.write(space + space + "\t\t<h:outputText value='" + transformaNomeColunaParaTexto(rsmd.getColumnName(i + 1)) + ":' />\n");
 				String nomeColuna = rsmd.getColumnName(i + 1);
 
 				/**
@@ -1243,8 +1243,7 @@ public class CriaArquiteturaNova {
 
 					fw.write(space + space + "\t\t<p:inputText id='componente" + contadorDeComponentes + "'\n");
 					contadorDeComponentes++;
-					fw.write(space + space + "\t\t\tvalue='#{" + nomeXhtml + "Bean.item."
-							+ transformaNomeColuna(nomeColuna) + "}'>\n ");
+					fw.write(space + space + "\t\t\tvalue='#{" + nomeXhtml + "Bean.item." + transformaNomeColuna(nomeColuna) + "}'>\n ");
 					fw.write(space + space + "\t\t</p:inputText>\n");
 
 				}
@@ -1259,35 +1258,27 @@ public class CriaArquiteturaNova {
 			fw.write(space + space + space + space + "icon='ui-icon-close' process='@this' update='@form'\n");
 			fw.write(space + space + space + space + "immediate='true' styleClass='buttonCancel'\n");
 			fw.write(space + space + space + space + "style='float: left;'>\n");
-			fw.write(space + space + space + space + "<f:setPropertyActionListener target='#{" + nomeXhtml
-					+ "Bean.state}'\n");
+			fw.write(space + space + space + space + "<f:setPropertyActionListener target='#{" + nomeXhtml + "Bean.state}'\n");
 			fw.write(space + space + space + space + "value='READ' />\n");
 			fw.write(space + space + space + "</p:commandButton>\n");
 			fw.write(space + space + space + "<p:commandButton id='buttonCreate'\n");
-			fw.write(space + space + space + space + "value=\"#{i18n['button.save']}\" action='#{" + nomeXhtml
-					+ "Bean.create}'\n");
+			fw.write(space + space + space + space + "value=\"#{i18n['button.save']}\" action='#{" + nomeXhtml + "Bean.create}'\n");
 			fw.write(space + space + space + space + "icon='ui-icon-check'\n");
-			fw.write(space + space + space + space + "rendered=\"#{" + nomeXhtml
-					+ "Bean.state eq 'CREATE'}\" process='@form'\n");
+			fw.write(space + space + space + space + "rendered=\"#{" + nomeXhtml + "Bean.state eq 'CREATE'}\" process='@form'\n");
 			fw.write(space + space + space + space + "update='@form' style='float: right;'>\n");
-			fw.write(space + space + space + space + "<f:setPropertyActionListener target='#{" + nomeXhtml
-					+ "Bean.state}'\n");
+			fw.write(space + space + space + space + "<f:setPropertyActionListener target='#{" + nomeXhtml + "Bean.state}'\n");
 			fw.write(space + space + space + space + "value='READ' />\n");
 			fw.write(space + space + space + "</p:commandButton>\n");
 			fw.write(space + space + space + "<p:commandButton id='buttonUpdate'\n");
-			fw.write(space + space + space + space + "value=\"#{i18n['button.edit']}\" action='#{" + nomeXhtml
-					+ "Bean.update}'\n");
+			fw.write(space + space + space + space + "value=\"#{i18n['button.edit']}\" action='#{" + nomeXhtml + "Bean.update}'\n");
 			fw.write(space + space + space + space + "icon='ui-icon-check'\n");
-			fw.write(space + space + space + space + "rendered=\"#{" + nomeXhtml
-					+ "Bean.state eq 'UPDATE'}\" process='@form'\n");
+			fw.write(space + space + space + space + "rendered=\"#{" + nomeXhtml + "Bean.state eq 'UPDATE'}\" process='@form'\n");
 			fw.write(space + space + space + space + "update='@form' style='float: right;'>\n");
-			fw.write(space + space + space + space + "<f:setPropertyActionListener target='#{" + nomeXhtml
-					+ "Bean.state}'\n");
+			fw.write(space + space + space + space + "<f:setPropertyActionListener target='#{" + nomeXhtml + "Bean.state}'\n");
 			fw.write(space + space + space + space + "value='READ' />\n");
 			fw.write(space + space + space + "</p:commandButton>\n");
 			fw.write(space + space + space + "<p:defaultCommand\n");
-			fw.write(space + space + space + space + "target=\"#{(" + nomeXhtml
-					+ "Bean.item.id eq null) ? 'buttonCreate' : 'buttonUpdate'}\" />\n");
+			fw.write(space + space + space + space + "target=\"#{(" + nomeXhtml + "Bean.item.id eq null) ? 'buttonCreate' : 'buttonUpdate'}\" />\n");
 			fw.write(space + space + space + "<div style='clear: both;'></div>\n");
 			fw.write(space + space + "</f:facet>\n");
 
@@ -1304,23 +1295,16 @@ public class CriaArquiteturaNova {
 			fw.write(space + space + "<div class='ui-grid-col-12'>\n");
 			fw.write(space + space + "<p:panel id='removePanel'\n");
 			fw.write(space + space + " header=\"#{i18n['operations.delete']} #{i18n['" + nomeXhtml + "']}\">\n "
-					+ " <div class='ui-grid-form ui-grid ui-grid-responsive'>\n " + "	<div class='ui-grid-row'>\n "
-					+ "	<div class='ui-grid-col-12'> \n" + "			<h3>" + "				<h:outputFormat"
-					+ "					value=\"#{i18n['operations.delete.areYouSure']}\">\n"
-					+ "					<f:param value='#{" + nomeXhtml + "Bean.item.id}' />\n"
-					+ "					</h:outputFormat>\n" + "			</h3>\n" + "		</div>\n"
-					+ "	</div>\n" + "	</div>\n" + "	<f:facet name='footer'>"
-					+ "	<p:commandButton value=\"#{i18n['button.cancel']}\"\n"
-					+ "		icon='ui-icon-close' process='@this' update='@form'"
-					+ "		immediate='true' styleClass='buttonCancel'\n" + "		style='float: left;'>\n"
-					+ "		<f:setPropertyActionListener target=\"#{" + nomeXhtml + "Bean.state}\"\n"
-					+ "			value='READ' />\n" + "	</p:commandButton>" + "	<p:commandButton id='buttonRemove'\n"
-					+ "		value=\"#{i18n['button.remove']}\"\n" + "		action='#{" + nomeXhtml
-					+ "Bean.delete}' icon='ui-icon-trash'\n"
-					+ "		process='@this' update='@form' style='float: right;'>\n"
-					+ "		<f:setPropertyActionListener target=\"#{" + nomeXhtml + "Bean.state}\""
-					+ "			value='READ' />\n" + "	</p:commandButton>" + "	<div style='clear: both;'>\n</div>\n"
-					+ "	</f:facet>\n" + "	</p:panel>\n" + "	</div>\n" + "	</div>\n");
+					+ " <div class='ui-grid-form ui-grid ui-grid-responsive'>\n " + "	<div class='ui-grid-row'>\n " + "	<div class='ui-grid-col-12'> \n" + "			<h3>"
+					+ "				<h:outputFormat" + "					value=\"#{i18n['operations.delete.areYouSure']}\">\n" + "					<f:param value='#{" + nomeXhtml
+					+ "Bean.item.id}' />\n" + "					</h:outputFormat>\n" + "			</h3>\n" + "		</div>\n" + "	</div>\n" + "	</div>\n" + "	<f:facet name='footer'>"
+					+ "	<p:commandButton value=\"#{i18n['button.cancel']}\"\n" + "		icon='ui-icon-close' process='@this' update='@form'"
+					+ "		immediate='true' styleClass='buttonCancel'\n" + "		style='float: left;'>\n" + "		<f:setPropertyActionListener target=\"#{" + nomeXhtml
+					+ "Bean.state}\"\n" + "			value='READ' />\n" + "	</p:commandButton>" + "	<p:commandButton id='buttonRemove'\n"
+					+ "		value=\"#{i18n['button.remove']}\"\n" + "		action='#{" + nomeXhtml + "Bean.delete}' icon='ui-icon-trash'\n"
+					+ "		process='@this' update='@form' style='float: right;'>\n" + "		<f:setPropertyActionListener target=\"#{" + nomeXhtml + "Bean.state}\""
+					+ "			value='READ' />\n" + "	</p:commandButton>" + "	<div style='clear: both;'>\n</div>\n" + "	</f:facet>\n" + "	</p:panel>\n" + "	</div>\n"
+					+ "	</div>\n");
 
 			// --- Fechando o xhtml -------
 			fw.write(space + space + "</h:panelGroup>\n");
@@ -1377,8 +1361,7 @@ public class CriaArquiteturaNova {
 			fw.write(space + "private " + nomeEntidade + "Service service;\n");
 			fw.write(space + "\n");
 			fw.write(space + "@Override\n");
-			fw.write(
-					space + "public Object getAsObject(FacesContext context, UIComponent component, String value) {\n");
+			fw.write(space + "public Object getAsObject(FacesContext context, UIComponent component, String value) {\n");
 			fw.write(space + space + "if (value.contains(\"--\")||value.contains(\"Escolha\")){\n");
 			fw.write(space + space + space + "return null;\n");
 			fw.write(space + space + "}\n");
@@ -1389,8 +1372,8 @@ public class CriaArquiteturaNova {
 			fw.write(space + space + space + "return object;\n");
 			fw.write(space + space + "} catch (Exception e) {\n");
 			fw.write(space + space + space + "e.printStackTrace();\n");
-			fw.write(space + space + space + "throw new ConverterException(\"Não foi possível encontrar o "
-					+ nomeEntidade + " de id: \" + value + \". \" + e.getMessage());\n");
+			fw.write(space + space + space + "throw new ConverterException(\"Não foi possível encontrar o " + nomeEntidade
+					+ " de id: \" + value + \". \" + e.getMessage());\n");
 			fw.write(space + space + "}\n");
 			fw.write(space + "\n");
 			fw.write(space + "\n");
@@ -1399,10 +1382,8 @@ public class CriaArquiteturaNova {
 			fw.write(space + "@Override\n");
 			fw.write(space + "public String getAsString(FacesContext context, UIComponent component,Object value) {\n");
 			fw.write(space + space + "if (value != null && value != \"\") {\n");
-			fw.write(space + space + space + "" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + " = ("
-					+ nomeEntidade + ") value;\n");
-			fw.write(space + space + space + "System.out.println(\"ID: \" + " + transformaNomeColuna(nomeEntidade)
-					+ ".getId());\n");
+			fw.write(space + space + space + "" + nomeEntidade + " " + transformaNomeColuna(nomeEntidade) + " = (" + nomeEntidade + ") value;\n");
+			fw.write(space + space + space + "System.out.println(\"ID: \" + " + transformaNomeColuna(nomeEntidade) + ".getId());\n");
 			fw.write(space + space + space + "return " + transformaNomeColuna(nomeEntidade) + ".getId() + \"\";\n");
 			fw.write(space + space + "}\n");
 			fw.write(space + space + "return null;\n");

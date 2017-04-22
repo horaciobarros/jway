@@ -53,7 +53,7 @@ public class Jway {
 				dbmd = conn.getMetaData();
 			} else {
 				DriverManager.registerDriver(new com.mysql.jdbc.Driver());
-				conn = DriverManager.getConnection("jdbc:mysql://107.161.176.58:3306/fitapp", "fitapp", "abc123#");
+				conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/claudio", "root", "");
 				// recuperar a classe DatabaseMetadaData a partir da conexao
 				// criada
 				dbmd = conn.getMetaData();
